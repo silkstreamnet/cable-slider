@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link href="css/cable-slider.css" type="text/css" rel="stylesheet" />
+    <style type="text/css">
+        *, *:before, *:after {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        html {overflow-x:hidden; height:100%;}
+        body {font-family:Arial, Helvetica, sans-serif; font-size:24px; margin:10px 0; padding:0; background: #383d44;}
+        a {}
+        p {font-size:100%; margin:0 0 10px 0;}
+        img {max-width:100%; height:auto;}
+
+        .hide {display:none;}
+
+        .custom-cable-slider {
+            position:relative;
+            max-width:400px;
+            margin:0 auto;
+        }
+
+        .custom-cable-slider-container {
+            position:relative;
+        }
+
+        .custom-cable-slider-slides {
+            margin-bottom:10px;
+            width:72%;
+            margin-left:27.5%;
+        }
+
+        .custom-cable-slider-slides img {
+            padding:20px;
+            border:1px solid #000;
+        }
+
+        .cable-slider-slide.active img {
+            border-color:#ccc;
+        }
+
+        .custom-cable-slider-prev, .custom-cable-slider-next {
+            display:inline-block;
+            width:50%;
+            text-align:center;
+            padding:10px;
+            background:#ccc;
+            font-size:150%;
+            text-decoration:none;
+            color:#000;
+        }
+
+        .custom-cable-slider-prev:hover, .custom-cable-slider-next:hover {
+            background:#aaa;
+        }
+
+        .custom-cable-slider-thumbs {
+            width:24%;
+            position:absolute;
+            top:0;
+            left:0;
+            height:100%;
+        }
+
+        .cable-slider-thumb .custom-cable-slider-thumb {
+            height:100%;
+        }
+
+        .cable-slider-thumb img {
+            max-height:100%;
+            width:auto;
+            border:1px solid transparent;
+        }
+
+        .cable-slider-thumb.active img {
+            border-color:#ccc;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="custom-cable-slider">
+    <div class="custom-cable-slider-container">
+        <div class="custom-cable-slider-thumbs">
+            <div class="custom-cable-slider-thumb hide"><img src="images/1_1.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="images/1_2.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="images/1_3.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="images/1_4.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="images/1_2.jpg"></div>
+        </div>
+        <div class="custom-cable-slider-slides">
+            <div class="custom-cable-slider-slide"><img src="images/1_1.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="images/1_2.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="images/1_3.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="images/1_4.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="images/1_2.jpg"></div>
+        </div>
+    </div>
+    <a class="custom-cable-slider-prev" href="#">&lt;</a><a class="custom-cable-slider-next" href="#">&gt;</a>
+</div>
+
+<script type="text/javascript" src="js/jquery/jquery-2.2.4.min.js"></script>
+<script type="text/javascript" src="js/cable-slider.js"></script>
+<script type="text/javascript">
+    $('.custom-cable-slider-slide.hide,.custom-cable-slider-thumb.hide').removeClass('hide');
+    var $custom_cable_slider_slides = $('.custom-cable-slider-slides'),
+            $custom_cable_slider_thumbs = $('.custom-cable-slider-thumbs');
+    for (var i=0; i<100; i++) {
+        //$custom_cable_slider_slides.append('<div class="custom-cable-slider-slide"><img src="images/1_2.jpg"></div>');
+        //$custom_cable_slider_thumbs.append('<div class="custom-cable-slider-thumb"><img src="images/1_2.jpg"></div>');
+    }
+    var custom_cable_slider = new $.CableSlider({
+        container:'.custom-cable-slider-slides',
+        next:'.custom-cable-slider-next',
+        prev:'.custom-cable-slider-prev',
+        margin:10,
+        align:'center',
+        shown:1,
+        thumbs_container:'.custom-cable-slider-thumbs',
+        thumbs_shown:3,
+        thumbs_orientation:'vertical',
+        thumbs_align:'center',
+        thumbs_margin:10,
+        auto_thumbs:false,
+        responsive:{ // need a function to get responsive overrides for settings
+            768:{ // if > 768 then apply these settings
+                shown:3,
+                thumbs_shown:5
+            }
+        }
+    });
+</script>
+</body>
+</html>
