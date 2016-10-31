@@ -523,7 +523,7 @@
                 container_height = _static.getJustHeight(self.elements.$container.parent());
                 self.elements.$container.css('height',container_height+'px');
             }
-            self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+            //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
 
             var slide_margin = self.settings.margin,
                 slide_width = (container_width-(slide_margin*(self.settings.shown-1)))/self.settings.shown,
@@ -559,14 +559,14 @@
                 });
 
             if (self.settings.orientation == 'vertical') {
-                self.elements.$wrapper.css('height',set_height+'px');
+                self.elements.$wrapper.css('height',(set_height+10)+'px');
             }
             else {
-                self.elements.$wrapper.css('width',set_width+'px');
+                self.elements.$wrapper.css('width',(set_width+10)+'px');
             }
 
             if (animate && adjust_slides && new_index != current_index) {
-                self.elements.$wrapper.css({'transition':'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                self.elements.$wrapper.css({'transition':'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
             }
 
             self._private.setCarouselPosition('slide',current_index,current_index,container_width,container_height);
@@ -655,14 +655,14 @@
                             });
 
                         if (self.settings.thumbs_orientation == 'vertical') {
-                            self.elements.$thumbs_wrapper.css('height',set_height+'px');
+                            self.elements.$thumbs_wrapper.css('height',(set_height+10)+'px');
                         }
                         else {
-                            self.elements.$thumbs_wrapper.css('width',set_width+'px');
+                            self.elements.$thumbs_wrapper.css('width',(set_width+10)+'px');
                         }
 
                         if (animate && adjust_thumbs && new_index != current_index) {
-                            self.elements.$thumbs_wrapper.css({'transition':'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                            self.elements.$thumbs_wrapper.css({'transition':'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                         }
 
                         self._private.setCarouselPosition('thumb',current_index,current_index,thumbs_container_width,thumbs_container_height);
