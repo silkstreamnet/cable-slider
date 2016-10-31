@@ -436,7 +436,7 @@
         thumbs_continuous:false,
         auto_thumbs:false, // will remove existing html inside thumbs container if it exists
         bullets_container:false,
-        auto_play:true, // set a number for a time period. false or 0 will not auto play.
+        auto_play:false, // set a number for a time period. false or 0 will not auto play.
         hover_pause:false,
         auto_create:true,
         responsive:{}
