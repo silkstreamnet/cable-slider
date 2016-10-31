@@ -31,20 +31,20 @@
     };
     _static.getJustHeight = function($element) {
         var element = (_static.isSet($element.length)) ? $element.get(0) : $element, cs = getComputedStyle(element), size = element.getBoundingClientRect().height;
-        console.log(cs.boxSizing);
         return (cs.boxSizing == 'border-box') ? size-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-parseFloat(cs.borderTopWidth)-parseFloat(cs.borderBottomWidth) : size;
     };
 
     _private.prototype.reset = function() {
         var self = this.self;
 
-        self.trigger('reset');
-
+        self.cache = {
+            images:{},
+            interface_images_loading:0,
+            slide_images_loading:0,
+            thumb_images_loading:0,
+            window_width:-1
+        };
         self.properties = {
-            image_cache:{},
-            interface_image_cache_loading:0,
-            slides_image_cache_loading:0,
-            thumbs_image_cache_loading:0,
             instance_id:self.properties.instance_id,
             events:self.properties.events,
             current_index:0,
@@ -74,8 +74,12 @@
             $bullets_wrapper:null,
             $bullets:null
         };
+    };
 
-        self.trigger('after_reset');
+    _private.prototype.resetAutoPlay = function() { var self = this.self;
+        if (self.properties.auto_play_timer !== false) {
+            self.play();
+        }
     };
 
     _private.prototype.getValidSlideNumber = function(slide) { var self = this.self;
@@ -122,7 +126,7 @@
         return orientation == 'vertical' ? (($first_item.offset().top-$wrapper.offset().top)) : (($first_item.offset().left-$wrapper.offset().left));
     };
 
-    _private.prototype.setCarouselPosition = function(type,current_index,new_index) { var self = this.self;
+    _private.prototype.setCarouselPosition = function(type,current_index,new_index,container_width,container_height) { var self = this.self;
         new_index = _static.param(new_index, false);
 
         var index_diff = 0,
@@ -130,32 +134,44 @@
             align = type == 'thumb' ? self.settings.thumbs_align : self.settings.align,
             orientation = type == 'thumb' ? self.settings.thumbs_orientation : self.settings.orientation,
             items_length = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs.length : self.elements.$slides.length,
-            $container = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs_container : self.elements.$container,
             $wrapper = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
             $items = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs : self.elements.$slides,
             $clones_before = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
             $clones_after = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after;
 
-        var container_size = self._private.getContainerSize($container,orientation),
-            new_position = self._private.getItemPosition($items.eq(new_index),$wrapper,container_size,orientation,align),
-            furthest_position = self._private.getFurthestPosition($items.last(),$wrapper,container_size,orientation),
-            nearest_position = self._private.getNearestPosition($items.first(),$wrapper,orientation);
-console.log(type,container_size);
-        if (new_position < nearest_position) {
-            new_position = nearest_position;
-        }
+        var container_size = orientation == 'vertical' ? container_height : container_width,
+            new_position = 0,
+            furthest_position = 0,
+            nearest_position = 0;
 
-        if (new_position > furthest_position) {
-            new_position = furthest_position;
-        }
-
+        //todo what about items with different sizes which don't fit directly into a certain amount shown?
         if (items_length > shown) {
-            if (orientation == 'vertical') {
-                $wrapper.css('transform','translate3d(0px,'+(new_position*-1)+'px,0px)');
+            new_position = self._private.getItemPosition($items.eq(new_index),$wrapper,container_size,orientation,align);
+            furthest_position = self._private.getFurthestPosition($items.last(),$wrapper,container_size,orientation);
+            nearest_position = self._private.getNearestPosition($items.first(),$wrapper,orientation);
+
+            if (new_position < nearest_position) {
+                new_position = nearest_position;
             }
-            else {
-                $wrapper.css('transform','translate3d('+(new_position*-1)+'px,0px,0px)');
+
+            if (new_position > furthest_position) {
+                new_position = furthest_position;
             }
+        }
+        else {
+            if (align == 'bottom' || align == 'right') {
+                new_position = self._private.getFurthestPosition($items.last(),$wrapper,container_size,orientation);
+            }
+            else if (align == 'center') {
+                new_position = self._private.getFurthestPosition($items.last(),$wrapper,container_size,orientation)/2;
+            }
+        }
+
+        if (orientation == 'vertical') {
+            $wrapper.css('transform','translate3d(0px,'+(new_position*-1)+'px,0px)');
+        }
+        else {
+            $wrapper.css('transform','translate3d('+(new_position*-1)+'px,0px,0px)');
         }
 
         $items.each(function() {
@@ -170,6 +186,85 @@ console.log(type,container_size);
 
     _private.prototype.load = function() { var self = this.self;
 
+    };
+
+    _private.prototype.applySettings = function(force) { var self = this.self;
+        force = force || false;
+
+        var window_width = _static.$window.width(),
+            responsive_width_keys = [],
+            new_settings;
+
+        if (force || window_width != self.cache.window_width) {
+            new_settings = $.extend(true,{},self.base_settings);
+
+            if (typeof self.base_settings.responsive === "object") {
+                for (var responsive_key in self.base_settings.responsive) {
+                    if (self.base_settings.responsive.hasOwnProperty(responsive_key)) {
+                        responsive_width_keys.push(responsive_key);
+                    }
+                }
+            }
+
+            responsive_width_keys.sort(function(a,b){return a-b});
+
+            for (var i=responsive_width_keys.length;i>=0;i--) {
+                if (window_width > parseInt(responsive_width_keys[i],10)) {
+                    $.extend(true,new_settings,self.base_settings.responsive[responsive_width_keys[i]]);
+                    break;
+                }
+            }
+
+            self.settings = new_settings;
+        }
+
+        self.cache.window_width = window_width;
+
+    };
+
+    _private.prototype.buildClones = function(type) { var self = this.self;
+        var $new_clone,
+            $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after,
+            $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
+            $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
+            shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
+            i;
+
+        if (_static.elementExists($clones_before)) {
+            $clones_before.remove();
+        }
+        if (_static.elementExists($clones_after)) {
+            $clones_after.remove();
+        }
+
+        if ($items.length > shown) {
+            $clones_before = $([]);
+            $clones_after = $([]);
+            for (i=$items.length-1; i>=$items.length-shown; i--) {
+                $new_clone = $items.eq(i).clone();
+                $new_clone.addClass('cable-slider-clone').prependTo($wrapper);
+                $clones_before = $clones_before.add($new_clone);
+            }
+            for (i=0; i<=shown-1; i++) {
+                $new_clone = $items.eq(i).clone();
+                $new_clone.addClass('cable-slider-clone').appendTo($wrapper);
+                $clones_after = $clones_after.add($new_clone);
+            }
+        }
+        else {
+            $clones_before = null;
+            $clones_after = null;
+        }
+
+        if (type == 'thumb') {
+            self.elements.$thumb_clones_before = $clones_before;
+            self.elements.$thumb_clones_after = $clones_after;
+        }
+        else {
+            self.elements.$slide_clones_before = $clones_before;
+            self.elements.$slide_clones_after = $clones_after;
+        }
     };
 
     _private.prototype.build = function() { var self = this.self;
@@ -199,23 +294,6 @@ console.log(type,container_size);
             self.elements.$container = $container;
             self.elements.$wrapper = $wrapper;
             self.elements.$slides = $slides;
-
-            // slide clones
-            if ($slides.length > self.settings.shown) {
-                var $new_clone;
-                self.elements.$slide_clones_before = $([]);
-                self.elements.$slide_clones_after = $([]);
-                for (i=$slides.length-1; i>=$slides.length-1-self.settings.shown; i--) {
-                    $new_clone = $slides.eq(i).clone();
-                    $new_clone.addClass('cable-slider-clone').prependTo($wrapper);
-                    self.elements.$slide_clones_before = self.elements.$slide_clones_before.add($new_clone);
-                }
-                for (i=0; i<=self.settings.shown-1; i++) {
-                    $new_clone = $slides.eq(i).clone();
-                    $new_clone.addClass('cable-slider-clone').appendTo($wrapper);
-                    self.elements.$slide_clones_after = self.elements.$slide_clones_after.add($new_clone);
-                }
-            }
 
             // thumbs
             var $thumbs_root = $(self.settings.thumbs_container).eq(0),
@@ -262,21 +340,8 @@ console.log(type,container_size);
             self.elements.$thumbs_wrapper = $thumbs_wrapper;
             self.elements.$thumbs = $thumbs;
 
-            // thumb clones
-            if (_static.elementExists($thumbs) && $thumbs.length > self.settings.thumbs_shown) {
-                self.elements.$thumb_clones_before = $([]);
-                self.elements.$thumb_clones_after = $([]);
-                for (i=$thumbs.length-1; i>=$thumbs.length-1-self.settings.thumbs_shown; i--) {
-                    $new_clone = $thumbs.eq(i).clone();
-                    $new_clone.addClass('cable-slider-clone').prependTo($thumbs_wrapper);
-                    self.elements.$thumb_clones_before = self.elements.$thumb_clones_before.add($new_clone);
-                }
-                for (i=0; i<=self.settings.thumbs_shown-1; i++) {
-                    $new_clone = $thumbs.eq(i).clone();
-                    $new_clone.addClass('cable-slider-clone').appendTo($thumbs_wrapper);
-                    self.elements.$thumb_clones_after = self.elements.$thumb_clones_after.add($new_clone);
-                }
-            }
+            self._private.buildClones('slide');
+            self._private.buildClones('thumb');
 
             self.elements.$next = $(self.settings.next);
             self.elements.$prev = $(self.settings.prev);
@@ -290,6 +355,10 @@ console.log(type,container_size);
                 e.preventDefault();
                 self.prev();
             });
+
+            if (self.settings.auto_play) {
+                self.play();
+            }
         }
     };
 
@@ -325,34 +394,27 @@ console.log(type,container_size);
     };
 
     var CableSlider = function(settings){ var self = this;
-
-        //self.trigger('initialize',false,[settings]);
-
         self._private = new _private();
         self._private.self = self;
-
-        self.settings = $.extend(true,{},self.default_settings,_static.param(settings,{}));
 
         //defaults for pass through values
         self.properties = {
             instance_id:_static._next_instance_id,
             events:{}
         };
-        self.elements = {};
-
         self._private.reset();
 
-        _static._next_instance_id++;
+        self.base_settings = $.extend(true,{},self.default_settings,_static.param(settings,{}));
+        self._private.applySettings(true); // use base settings and the responsive settings inside to get overall settings
 
+        _static._next_instance_id++;
         _static._instances[self.properties.instance_id] = self;
         _static._instances.length++;
-
-        //self.trigger('after_initialize',false,[settings]);
 
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.0.5';
+    CableSlider.prototype.version = '0.0.6';
     CableSlider.prototype.default_settings = {
         container:false,
         next:false,
@@ -382,7 +444,6 @@ console.log(type,container_size);
 
 
     CableSlider.prototype.create = function(){ var self = this;
-
         self.destroy();
 
         self.trigger('create');
@@ -410,11 +471,9 @@ console.log(type,container_size);
 
     CableSlider.prototype.update = function(settings){ var self = this;
 
-        $.extend(true,self.settings,_static.param(settings,{}));
-
-        if (self.isModelReady()) {
-            self.adjust(false,true);
-        }
+        $.extend(true,self.base_settings,_static.param(settings,{}));
+        self._private.applySettings(true);
+        self.adjust(false,true);
     };
 
     CableSlider.prototype.adjust = function(animate,immediate) { var self = this;
@@ -442,6 +501,8 @@ console.log(type,container_size);
         if (_static.elementExists(self.elements.$slides)) {
             self.trigger('adjust');
 
+            self._private.applySettings();
+
             var current_index = self.properties.current_index,
                 new_index = self.properties.new_index,
                 adjust_slides = self.elements.$slides.length > self.settings.shown,
@@ -453,6 +514,8 @@ console.log(type,container_size);
             self.elements.$thumbs_wrapper.css({'transition':'all 0s ease'});
 
             // slides
+            self._private.buildClones('slide');
+
             var container_width = self.elements.$container.get(0).getBoundingClientRect().width,
                 container_height = self.elements.$container.get(0).getBoundingClientRect().height;
 
@@ -508,8 +571,12 @@ console.log(type,container_size);
                 self.elements.$wrapper.css({'transition':'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
             }
 
+            self._private.setCarouselPosition('slide',current_index,current_index,container_width,container_height);
+
             // thumbs
             if (_static.elementExists(self.elements.$thumbs)) {
+                self._private.buildClones('thumb');
+
                 var thumbs_container_width = self.elements.$thumbs_container.get(0).getBoundingClientRect().width,
                     thumbs_container_height = self.elements.$thumbs_container.get(0).getBoundingClientRect().height;
 
@@ -564,6 +631,8 @@ console.log(type,container_size);
                 if (animate && adjust_thumbs && new_index != current_index) {
                     self.elements.$thumbs_wrapper.css({'transition':'all 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
+
+                self._private.setCarouselPosition('thumb',current_index,current_index,thumbs_container_width,thumbs_container_height);
             }
 
             self.properties.current_index = new_index;
@@ -574,7 +643,7 @@ console.log(type,container_size);
                     self.elements.$thumbs.removeClass('focus');
                 }
 
-                self._private.setCarouselPosition('slide',current_index,new_index);
+                self._private.setCarouselPosition('slide',current_index,new_index,container_width,container_height);
 
                 var setHeight = 0;
 
@@ -601,7 +670,7 @@ console.log(type,container_size);
                 if (_static.elementExists(self.elements.$thumbs)) {
 
                     self.elements.$thumbs.removeClass('active');
-                    self._private.setCarouselPosition('thumb',current_index,new_index);
+                    self._private.setCarouselPosition('thumb',current_index,new_index,thumbs_container_width,thumbs_container_height);
 
                     setHeight = 0;
 
@@ -627,15 +696,12 @@ console.log(type,container_size);
         }
     };
 
-    CableSlider.prototype.isModelReady = function(){ var self = this;
-        return _static.elementExists(self.elements.$container);
-    };
-
     CableSlider.prototype.isReady = function() {
         // if minimum loaded images is true
     };
 
     CableSlider.prototype.goTo = function(slide,direction) { var self = this;
+        self._private.resetAutoPlay();
         if (_static.isNumber(slide)) {
             slide = self._private.getValidSlideNumber(slide);
             self._private.changeSlide(self.elements.$slides.get(slide),direction);
@@ -705,12 +771,19 @@ console.log(type,container_size);
         self.goTo(new_index,-1);
     };
 
-    CableSlider.prototype.play = function() {
-
+    CableSlider.prototype.play = function() { var self = this;
+        self.pause();
+        var timeout_ms = (_static.isNumber(self.settings.auto_play)) ? parseInt(self.settings.auto_play,10) : 3000;
+        self.properties.auto_play_timer = setTimeout(function(){
+            self.next();
+        },timeout_ms);
     };
 
-    CableSlider.prototype.pause = function() {
-
+    CableSlider.prototype.pause = function() { var self = this;
+        if (self.properties.auto_play_timer !== false) {
+            clearTimeout(self.properties.auto_play_timer);
+            self.properties.auto_play_timer = false;
+        }
     };
 
     CableSlider.prototype.on = function(event,handler){ var self = this;
