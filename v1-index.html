@@ -22,7 +22,7 @@
 
         .custom-cable-slider {
             position:relative;
-            max-width:400px;
+            max-width:800px;
             margin:0 auto;
         }
 
@@ -125,19 +125,19 @@
         align:'center',
         shown:1,
         thumbs_container:'.custom-cable-slider-thumbs',
-        thumbs_shown:6,
+        thumbs_shown:3,
         thumbs_orientation:'vertical',
         thumbs_align:'center',
         thumbs_margin:10,
         auto_thumbs:false,
-        auto_play:2000,
+        auto_play:false,
         responsive:{ // need a function to get responsive overrides for settings
             1500:{ // if > 768 then apply these settings
                 shown:3,
-                thumbs_shown:2
+                thumbs_shown:6
             },
             800:{
-                shown:2,
+                shown:3,
                 thumbs_shown:4
             }
         }

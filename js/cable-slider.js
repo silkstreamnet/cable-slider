@@ -524,8 +524,9 @@
                 self.elements.$container.css('height',container_height+'px');
             }
             else {
-                self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
             }
+            self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
 
             var slide_margin = self.settings.margin,
                 slide_width = (container_width-(slide_margin*(self.settings.shown-1)))/self.settings.shown,
@@ -585,8 +586,9 @@
                     self.elements.$thumbs_container.css('height',thumbs_container_height+'px');
                 }
                 else {
-                    self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    //self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
+                self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
 
                 var thumb_margin = self.settings.thumbs_margin,
                     thumb_width = (thumbs_container_width-(thumb_margin*(self.settings.thumbs_shown-1)))/self.settings.thumbs_shown,
@@ -643,6 +645,11 @@
                     self.elements.$thumbs.removeClass('focus');
                 }
 
+                if (self.settings.orientation == 'vertical') {
+                    container_height = _static.getJustHeight(self.elements.$container.parent());
+                    self.elements.$container.css('height',container_height+'px');
+                }
+
                 self._private.setCarouselPosition('slide',current_index,new_index,container_width,container_height);
 
                 var setHeight = 0;
@@ -670,6 +677,13 @@
                 if (_static.elementExists(self.elements.$thumbs)) {
 
                     self.elements.$thumbs.removeClass('active');
+
+                    if (self.settings.thumbs_orientation == 'vertical') {
+                        thumbs_container_height = _static.getJustHeight(self.elements.$thumbs_container.parent());
+                        console.log(thumbs_container_height);
+                        self.elements.$thumbs_container.css('height',thumbs_container_height+'px');
+                    }
+
                     self._private.setCarouselPosition('thumb',current_index,new_index,thumbs_container_width,thumbs_container_height);
 
                     setHeight = 0;
