@@ -484,7 +484,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.0.6';
+    CableSlider.prototype.version = '0.0.7';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
