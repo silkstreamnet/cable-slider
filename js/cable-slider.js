@@ -666,15 +666,16 @@
 
                 self._private.setCarouselPosition('slide', current_index, new_index, container_width, container_height);
 
-                var setHeight = 0;
+                set_width = 0;
+                set_height = 0;
 
                 self.elements.$slides.each(function (index) {
                     var $item = $(this);
                     if ($item.hasClass('active')) {
                         if (self.settings.orientation != 'vertical') {
                             var slideHeight = $item[0].getBoundingClientRect().height + ($item.outerHeight(true) - $item.outerHeight(false)); // should have border-box set for box-sizing
-                            if (slideHeight > setHeight) {
-                                setHeight = slideHeight;
+                            if (slideHeight > set_height) {
+                                set_height = slideHeight;
                             }
                         }
 
@@ -685,7 +686,7 @@
                 });
 
                 if (self.settings.orientation != 'vertical') {
-                    self.elements.$container.css('height', setHeight + 'px');
+                    self.elements.$container.css('height', set_height + 'px');
                 }
 
                 if (_static.elementExists(self.elements.$thumbs) && self.elements.$thumbs.length == self.elements.$slides.length) {
@@ -758,22 +759,23 @@
 
                             self._private.setCarouselPosition('thumb', current_index, new_index, thumbs_container_width, thumbs_container_height);
 
-                            setHeight = 0;
+                            set_width = 0;
+                            set_height = 0;
 
                             self.elements.$thumbs.each(function () {
                                 var $item = $(this);
                                 if ($item.hasClass('active')) {
                                     if (self.settings.thumbs_orientation != 'vertical') {
                                         var slideHeight = $item[0].getBoundingClientRect().height + ($item.outerHeight(true) - $item.outerHeight(false)); // should have border-box set for box-sizing
-                                        if (slideHeight > setHeight) {
-                                            setHeight = slideHeight;
+                                        if (slideHeight > set_height) {
+                                            set_height = slideHeight;
                                         }
                                     }
                                 }
                             });
 
                             if (self.settings.thumbs_orientation != 'vertical') {
-                                self.elements.$thumbs_container.css('height', setHeight + 'px');
+                                self.elements.$thumbs_container.css('height', set_height + 'px');
                             }
 
                             self.trigger('after_adjust');
