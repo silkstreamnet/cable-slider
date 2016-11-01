@@ -110,37 +110,39 @@
 <script type="text/javascript" src="js/jquery/jquery-2.2.4.min.js"></script>
 <script type="text/javascript" src="js/cable-slider.js"></script>
 <script type="text/javascript">
-    $('.custom-cable-slider-slide.hide,.custom-cable-slider-thumb.hide').removeClass('hide');
-    var $custom_cable_slider_slides = $('.custom-cable-slider-slides'),
-            $custom_cable_slider_thumbs = $('.custom-cable-slider-thumbs');
-    for (var i=0; i<100; i++) {
-        //$custom_cable_slider_slides.append('<div class="custom-cable-slider-slide"><img src="images/1_2.jpg"></div>');
-        //$custom_cable_slider_thumbs.append('<div class="custom-cable-slider-thumb"><img src="images/1_2.jpg"></div>');
-    }
-    var custom_cable_slider = new $.CableSlider({
-        container:'.custom-cable-slider-slides',
-        next:'.custom-cable-slider-next',
-        prev:'.custom-cable-slider-prev',
-        margin:10,
-        align:'center',
-        shown:1,
-        thumbs_container:'.custom-cable-slider-thumbs',
-        thumbs_shown:3,
-        thumbs_orientation:'vertical',
-        thumbs_align:'center',
-        thumbs_margin:10,
-        auto_thumbs:false,
-        auto_play:false,
-        responsive:{ // need a function to get responsive overrides for settings
-            1500:{ // if > 768 then apply these settings
-                shown:3,
-                thumbs_shown:6
-            },
-            800:{
-                shown:3,
-                thumbs_shown:4
-            }
+    $(window).on('load',function(){
+        $('.custom-cable-slider-slide.hide,.custom-cable-slider-thumb.hide').removeClass('hide');
+        var $custom_cable_slider_slides = $('.custom-cable-slider-slides'),
+                $custom_cable_slider_thumbs = $('.custom-cable-slider-thumbs');
+        for (var i=0; i<100; i++) {
+            //$custom_cable_slider_slides.append('<div class="custom-cable-slider-slide"><img src="images/1_2.jpg"></div>');
+            //$custom_cable_slider_thumbs.append('<div class="custom-cable-slider-thumb"><img src="images/1_2.jpg"></div>');
         }
+        var custom_cable_slider = new $.CableSlider({
+            container:'.custom-cable-slider-slides',
+            next:'.custom-cable-slider-next',
+            prev:'.custom-cable-slider-prev',
+            margin:10,
+            align:'center',
+            shown:1,
+            thumbs_container:'.custom-cable-slider-thumbs',
+            thumbs_shown:3,
+            thumbs_orientation:'vertical',
+            thumbs_align:'center',
+            thumbs_margin:10,
+            auto_thumbs:false,
+            auto_play:false,
+            responsive:{ // need a function to get responsive overrides for settings
+                1500:{ // if > 768 then apply these settings
+                    shown:3,
+                    thumbs_shown:6
+                },
+                800:{
+                    shown:3,
+                    thumbs_shown:4
+                }
+            }
+        });
     });
 </script>
 </body>
