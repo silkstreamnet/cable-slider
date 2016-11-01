@@ -633,10 +633,16 @@
                 });
 
             if (self.settings.orientation == 'vertical') {
-                self.elements.$wrapper.css('height', (set_height + 10) + 'px');
+                self.elements.$wrapper.css({
+                    'width':'',
+                    'height':(set_height + 10) + 'px'
+                });
             }
             else {
-                self.elements.$wrapper.css('width', (set_width + 10) + 'px');
+                self.elements.$wrapper.css({
+                    'width':(set_width + 10) + 'px',
+                    'height':''
+                });
             }
 
             if (animate && adjust_slides && new_index != current_index) {
