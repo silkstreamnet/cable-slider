@@ -593,23 +593,18 @@
             var container_width = self.elements.$container.get(0).getBoundingClientRect().width,
                 container_height = self.elements.$container.get(0).getBoundingClientRect().height;
 
-            if (self.settings.orientation == 'vertical') {
-                container_height = _static.getJustHeight(self.elements.$container.parent());
-                self.elements.$container.css('height', container_height + 'px');
-            }
             //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
 
             var slide_margin = self.settings.margin,
                 slide_width = (container_width - (slide_margin * (self.settings.shown - 1))) / self.settings.shown,
-                slide_height = (container_height - (slide_margin * (self.settings.shown - 1))) / self.settings.shown,
                 set_width = 0,
                 set_height = 0,
                 slide_css = {};
 
             if (self.settings.orientation == 'vertical') {
                 slide_css = {
-                    'width': 'auto',
-                    'height': (slide_height) + 'px',
+                    'width': container_width,
+                    'height': 'auto',
                     'float': 'none',
                     'margin-bottom': slide_margin + 'px'
                 };
