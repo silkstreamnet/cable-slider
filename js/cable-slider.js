@@ -1,8 +1,9 @@
-(function ($, window) {
+(function ($, window, document) {
 
     var _private = function () {
         },
         _static = {
+            $document: $(document),
             $window: $(window),
             $html: $('html'),
             $body: $('body'),
@@ -229,9 +230,13 @@
 
         if (orientation == 'vertical') {
             $wrapper.css('transform', 'translate3d(0px,' + (new_position * -1) + 'px,0px)');
+            $wrapper.data('translateX',0);
+            $wrapper.data('translateY',new_position*-1);
         }
         else {
             $wrapper.css('transform', 'translate3d(' + (new_position * -1) + 'px,0px,0px)');
+            $wrapper.data('translateX',new_position*-1);
+            $wrapper.data('translateY',0);
         }
 
     };
@@ -445,14 +450,6 @@
                         $thumbs = $thumbs_wrapper.find('>.cable-slider-thumb');
                     }
                 }
-
-                $thumbs.each(function (index) {
-                    var $thumb = $(this);
-                    $thumb.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
-                        e.preventDefault();
-                        self.goTo(index);
-                    });
-                });
             }
 
             self.elements.$thumbs_root = $thumbs_root;
@@ -475,6 +472,94 @@
                 e.preventDefault();
                 self.prev();
             });
+
+            // add all of the below to a function to handle dragging/swiping
+
+            var disable_mouse = false;
+            self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
+                disable_mouse = true;
+                var startX = e.originalEvent.touches[0].pageX,
+                    startY = e.originalEvent.touches[0].pageY,
+                    moveX = startX,
+                    moveY = startY,
+                    wrapperX = self.elements.$wrapper.data('translateX'),
+                    wrapperY = self.elements.$wrapper.data('translateY');
+                self.elements.$wrapper.css('transition','all 0s ease');
+                _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
+                    e.preventDefault();
+                    moveX = e.originalEvent.touches[0].pageX;
+                    moveY = e.originalEvent.touches[0].pageY;
+
+                    var new_position = 0;
+
+                    if (self.settings.orientation == 'vertical') {
+                        new_position = wrapperY+(moveY-startY);
+                        self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
+                        self.elements.$wrapper.data('translateX',0);
+                        self.elements.$wrapper.data('translateY',new_position);
+                    }
+                    else {
+                        new_position = wrapperX+(moveX-startX);
+                        self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
+                        self.elements.$wrapper.data('translateX',new_position);
+                        self.elements.$wrapper.data('translateY',0);
+                    }
+
+                    return false;
+                });
+                _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
+                    _static.$document.off('touchmove.'+_static._event_namespace);
+                    _static.$document.off('touchend.'+_static._event_namespace);
+                    disable_mouse = false;
+                });
+            });
+
+            self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
+                if (!disable_mouse && e.which == 1) {
+                    var startX = e.pageX,
+                        startY = e.pageY,
+                        moveX = startX,
+                        moveY = startY,
+                        wrapperX = self.elements.$wrapper.data('translateX'),
+                        wrapperY = self.elements.$wrapper.data('translateY');
+                    self.elements.$wrapper.css('transition','all 0s ease');
+                    _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
+                        e.preventDefault();
+                        moveX = e.pageX;
+                        moveY = e.pageY;
+
+                        var new_position = 0;
+
+                        if (self.settings.orientation == 'vertical') {
+                            new_position = wrapperY+(moveY-startY);
+                            self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
+                            self.elements.$wrapper.data('translateX',0);
+                            self.elements.$wrapper.data('translateY',new_position);
+                        }
+                        else {
+                            new_position = wrapperX+(moveX-startX);
+                            self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
+                            self.elements.$wrapper.data('translateX',new_position);
+                            self.elements.$wrapper.data('translateY',0);
+                        }
+                        return false;
+                    });
+                    _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
+                        _static.$document.off('mousemove.'+_static._event_namespace);
+                        _static.$document.off('mouseup.'+_static._event_namespace);
+                    });
+                }
+            });
+
+            if (_static.elementExists($thumbs)) {
+                $thumbs.each(function (index) {
+                    var $thumb = $(this);
+                    $thumb.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
+                        e.preventDefault();
+                        self.goTo(index);
+                    });
+                });
+            }
 
             if (self.settings.auto_play) {
                 self.play();
@@ -649,7 +734,7 @@
 
             var activity_data = self._private.setItemsActivity(type, $items, data.current_index, orientation);
             $container.css('height',activity_data.new_container_height+'px');
-            self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+            //self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
 
             activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
             data.new_container_height = activity_data.new_container_height;
@@ -994,4 +1079,4 @@
 
     $.CableSlider = CableSlider;
 
-})(jQuery, window);
+})(jQuery, window, document);
