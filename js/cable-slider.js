@@ -237,6 +237,16 @@
 
     };
 
+    _private.prototype.getRealMargin = function(margin,container_width) {
+        var self = this.self;
+        if (_static.isString(margin,true)) {
+
+        }
+        else if (_static.isNumber(margin,true)) {
+            aa
+        }
+    };
+
     _private.prototype.setCarouselItemsActive = function (type,new_index) {
         var self = this.self;
         new_index = _static.param(new_index, false);
@@ -590,18 +600,22 @@
                     'width': data.container_width,
                     'height': 'auto',
                     'float': 'none',
-                    'margin-bottom': margin + 'px',
                     'transition':'all 0s ease'
                 };
+                if (_static.isNumber(margin)) {
+                    slide_css['margin-bottom'] = margin+'px';
+                }
             }
             else {
                 slide_css = {
                     'width': ((data.container_width - (margin * (shown - 1))) / shown) + 'px',
                     'height': 'auto',
                     'float': 'left',
-                    'margin-right': margin + 'px',
                     'transition':'all 0s ease'
                 };
+                if (_static.isNumber(margin)) {
+                    slide_css['margin-right'] = margin+'px';
+                }
             }
 
             $items
@@ -672,7 +686,7 @@
         shown: 1,
         orientation: 'horizontal',
         align: 'left', // for multiple items, set the zero point
-        margin: 0,
+        margin: false,
         loop: false,
         continuous: false,
         thumbs_container: false,
@@ -681,7 +695,7 @@
         thumbs_shown: 5,
         thumbs_orientation: 'horizontal',
         thumbs_align: 'center', // for multiple items, set the zero point
-        thumbs_margin: 0,
+        thumbs_margin: false,
         thumbs_loop: false,
         thumbs_continuous: false,
         auto_thumbs: false, // will remove existing html inside thumbs container if it exists
