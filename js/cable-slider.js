@@ -205,7 +205,6 @@
             furthest_position = 0,
             nearest_position = 0;
 
-        //todo what about items with different sizes which don't fit directly into a certain amount shown?
         if (items_length > shown) {
             new_position = self._private.getItemPosition($items.eq(new_index), $wrapper, container_size, orientation, align);
             furthest_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation);
@@ -272,7 +271,7 @@
 
         if (min_index < 0) {
             min_index = 0;
-            max_index = shown - 1;
+            max_index = ($items.length <= shown) ? $items.length - 1 : shown - 1;
         }
         else if (max_index > $items.length - 1) {
             min_index = $items.length - shown;
@@ -782,13 +781,13 @@
                 thumb_adjust_data = self._private.prepareAdjust('thumb');
 
             if (slide_adjust_data) {
-                //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 if (animate && self.properties.new_index != self.properties.current_index) {
                     self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
 
                 if (thumb_adjust_data) {
-                    //self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                     if (animate && self.properties.new_index != self.properties.current_index) {
                         self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                     }
@@ -882,13 +881,9 @@
             new_position = self._private.getItemPosition(self.elements.$slides.eq(new_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
             furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation),
             nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation);
-console.log("nearest_pos",nearest_position);
-        console.log("cur_pos",cur_position);
-        console.log("new_pos",new_position);
 
         if (cur_position <= nearest_position && new_position < nearest_position) {
-            //todo this needs to take into account alignment?
-            new_index = self.elements.$slides.length - self.settings.shown;
+            new_index = self.elements.$slides.length - 1;
         }
         else if (new_position >= furthest_position && cur_position > furthest_position) {
             // find first item less than furthest_position
