@@ -265,16 +265,22 @@
             max_index = $items.length - 1;
         }
 
-        console.log(new_index);
-
-        console.log(align);
-        console.log(min_index);
-        console.log(max_index);
-
         $items.each(function (index) {
             var $item = $(this);
-            if (index >= min_index && index <= max_index) {
+            if (index == min_index) {
+                $item.addClass('active first-active');
+            }
+            else if (index == max_index) {
+                $item.addClass('active last-active');
+            }
+            else if (index >= min_index && index <= max_index) {
                 $item.addClass('active');
+            }
+            else if (index != min_index && index == Math.floor(min_index)) {
+                $item.addClass('active first-active part-active');
+            }
+            else if (index != max_index && index == Math.ceil(max_index)) {
+                $item.addClass('active last-active part-active');
             }
         });
     };
@@ -338,7 +344,7 @@
             $clones_after.remove();
         }
 
-        if (_static.elementExists($items) && $items.length > shown) {
+        if (self.settings.continuous && _static.elementExists($items) && $items.length > shown) {
             $clones_before = $([]);
             $clones_after = $([]);
             for (i = $items.length - 1; i >= $items.length - shown; i--) {
@@ -675,42 +681,57 @@
                 self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
             }
 
+            self.elements.$slides.removeClass('active part-active');
+            if (_static.elementExists(self.elements.$thumbs)) {
+                self.elements.$thumbs.removeClass('focus');
+            }
+
+            self._private.setCarouselItemsActive('slide',new_index);
+
+            set_width = 0;
+            set_height = 0;
+
+            self.elements.$slides.each(function (index) {
+                var $item = $(this),
+                    item_height = Math.ceil($item[0].getBoundingClientRect().height*1)/1; // should have border-box set for box-sizing
+
+                if ($item.hasClass('part-active')) {
+                    item_height /= 2;
+                }
+
+                if ($item.hasClass('active')) {
+                    if (self.settings.orientation == 'vertical') {
+                        if (!$item.hasClass('last-active')) {
+                            item_height += $item.outerHeight(true)-$item.outerHeight(false);
+                        }
+
+                        set_height += item_height;
+                    }
+                    else {
+                        if (item_height > set_height) {
+                            set_height = item_height;
+                        }
+                    }
+
+                    if (_static.elementExists(self.elements.$thumbs)) {
+                        self.elements.$thumbs.eq(index).addClass('focus');
+                    }
+                }
+            });
+
+            self.elements.$container.css('height', set_height + 'px');
+
+            container_height = set_height;
+
             self._private.setCarouselPosition('slide', current_index, container_width, container_height);
 
             self.properties.current_index = new_index;
 
             setTimeout(function () {
-                self.elements.$slides.removeClass('active');
-                if (_static.elementExists(self.elements.$thumbs)) {
-                    self.elements.$thumbs.removeClass('focus');
-                }
+                // animate container height
 
-                self._private.setCarouselItemsActive('slide',new_index);
 
-                set_width = 0;
-                set_height = 0;
-
-                self.elements.$slides.each(function (index) {
-                    var $item = $(this);
-                    if ($item.hasClass('active')) {
-                        var item_height = $item[0].getBoundingClientRect().height + ($item.outerHeight(true) - $item.outerHeight(false)); // should have border-box set for box-sizing
-                        if (self.settings.orientation == 'vertical') {
-                            set_height += item_height;
-                        }
-                        else {
-                            if (item_height > set_height) {
-                                set_height = item_height;
-                            }
-                        }
-
-                        if (_static.elementExists(self.elements.$thumbs)) {
-                            self.elements.$thumbs.eq(index).addClass('focus');
-                        }
-                    }
-                });
-
-                self.elements.$container.css('height', set_height + 'px');
-
+                // animate slides
                 self._private.setCarouselPosition('slide', new_index, container_width, set_height);
 
                 if (_static.elementExists(self.elements.$thumbs) && self.elements.$thumbs.length == self.elements.$slides.length) {
