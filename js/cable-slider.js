@@ -240,11 +240,15 @@
     _private.prototype.getRealMargin = function(margin,container_width) {
         var self = this.self;
         if (_static.isString(margin,true)) {
-
+            var last_char = margin.slice(-1);
+            if (last_char == '%') {
+                var percent = parseInt(margin,10);
+                if (_static.isNumber(percent)) {
+                    margin = container_width*(percent/100);
+                }
+            }
         }
-        else if (_static.isNumber(margin,true)) {
-            aa
-        }
+        return margin;
     };
 
     _private.prototype.setCarouselItemsActive = function (type,new_index) {
@@ -590,6 +594,8 @@
                 container_width:$container.get(0).getBoundingClientRect().width,
                 new_container_height:0
             };
+
+            margin = self._private.getRealMargin(margin,data.container_width);
 
             var new_wrapper_width = 0,
                 new_wrapper_height = 0,
