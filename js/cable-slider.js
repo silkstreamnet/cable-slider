@@ -864,6 +864,7 @@
                     find_slide_position = self._private.getItemPosition($find_slide, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
                 if (find_slide_position > nearest_position) {
                     new_index = i;
+                    break;
                 }
             }
         }
@@ -881,8 +882,12 @@
             new_position = self._private.getItemPosition(self.elements.$slides.eq(new_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
             furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation),
             nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation);
+console.log("nearest_pos",nearest_position);
+        console.log("cur_pos",cur_position);
+        console.log("new_pos",new_position);
 
         if (cur_position <= nearest_position && new_position < nearest_position) {
+            //todo this needs to take into account alignment?
             new_index = self.elements.$slides.length - self.settings.shown;
         }
         else if (new_position >= furthest_position && cur_position > furthest_position) {
@@ -890,8 +895,9 @@
             for (var i = self.elements.$slides.length - 1; i >= 0; i--) {
                 var $find_slide = $(self.elements.$slides[i]),
                     find_slide_position = self._private.getItemPosition($find_slide, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
-                if (find_slide_position > nearest_position) {
+                if (find_slide_position < furthest_position) {
                     new_index = i;
+                    break;
                 }
             }
 
