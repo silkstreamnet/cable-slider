@@ -267,20 +267,20 @@
 
         $items.each(function (index) {
             var $item = $(this);
-            if (index == min_index) {
-                $item.addClass('active first-active');
-            }
-            else if (index == max_index) {
+            if (index == max_index) {
                 $item.addClass('active last-active');
+            }
+            else if (index == min_index) {
+                $item.addClass('active first-active');
             }
             else if (index >= min_index && index <= max_index) {
                 $item.addClass('active');
             }
-            else if (index != min_index && index == Math.floor(min_index)) {
-                $item.addClass('active first-active part-active');
-            }
             else if (index != max_index && index == Math.ceil(max_index)) {
                 $item.addClass('active last-active part-active');
+            }
+            else if (index != min_index && index == Math.floor(min_index)) {
+                $item.addClass('active first-active part-active');
             }
         });
     };
@@ -501,6 +501,147 @@
         }
     };
 
+    _private.prototype.setItemsActivity = function(type,$items,new_index,orientation) {
+        var self = this.self;
+
+        var data = {
+            new_container_height:0
+        };
+        // activity start
+
+        $items.removeClass('active part-active first-active last-active');
+        if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
+            self.elements.$thumbs.removeClass('focus');
+        }
+
+        self._private.setCarouselItemsActive(type, new_index);
+
+        // activity end
+
+        // container height start
+
+        $items.each(function (index) {
+            var $item = $(this),
+                item_height = $item[0].getBoundingClientRect().height; // should have border-box set for box-sizing
+
+            if ($item.hasClass('active')) {
+                if (orientation == 'vertical') {
+                    if (!$item.hasClass('last-active') && !$item.hasClass('part-active')) {
+                        item_height += $item.outerHeight(true) - $item.outerHeight(false);
+                    }
+
+                    if ($item.hasClass('part-active')) {
+                        item_height /= 2;
+                    }
+
+                    data.new_container_height += item_height;
+                }
+                else {
+                    if (item_height > data.new_container_height) {
+                        data.new_container_height = item_height;
+                    }
+                }
+
+                if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
+                    self.elements.$thumbs.eq(index).addClass('focus');
+                }
+            }
+        });
+
+        return data;
+    };
+
+    _private.prototype.prepareAdjust = function(type) {
+        var self = this.self;
+
+        var data,
+            $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
+            $clones_before = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after,
+            $container = type == 'thumb' ? self.elements.$thumbs_container : self.elements.$container,
+            $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
+            shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
+            margin = type == 'thumb' ? self.settings.thumbs_margin : self.settings.margin,
+            orientation = type == 'thumb' ? self.settings.thumbs_orientation : self.settings.orientation;
+
+        if (_static.elementExists($items) && (type != 'thumb' || self.elements.$thumbs.length == self.elements.$slides.length)) {
+
+            // layout start
+            self._private.applySettings();
+
+            $container.css({'transition': 'all 0s ease'});
+            $wrapper.css({'transition': 'all 0s ease'});
+
+            self._private.buildClones(type);
+
+            data = {
+                current_index:self.properties.current_index,
+                new_index:self.properties.new_index,
+                container_width:$container.get(0).getBoundingClientRect().width,
+                new_container_height:0
+            };
+
+            var new_wrapper_width = 0,
+                new_wrapper_height = 0,
+                slide_css = {};
+
+            if (orientation == 'vertical') {
+                slide_css = {
+                    'width': data.container_width,
+                    'height': 'auto',
+                    'float': 'none',
+                    'margin-bottom': margin + 'px',
+                    'transition':'all 0s ease'
+                };
+            }
+            else {
+                slide_css = {
+                    'width': ((data.container_width - (margin * (shown - 1))) / shown) + 'px',
+                    'height': 'auto',
+                    'float': 'left',
+                    'margin-right': margin + 'px',
+                    'transition':'all 0s ease'
+                };
+            }
+
+            $items
+                .add($clones_before)
+                .add($clones_after)
+                .css(slide_css)
+                .each(function () {
+                    new_wrapper_width += $(this).outerWidth(true);
+                    new_wrapper_height += $(this).outerHeight(true);
+                });
+
+            if (orientation == 'vertical') {
+                $wrapper.css({
+                    'width': '',
+                    'height': (new_wrapper_height + 10) + 'px'
+                });
+            }
+            else {
+                $wrapper.css({
+                    'width': (new_wrapper_width + 10) + 'px',
+                    'height': ''
+                });
+            }
+
+            // layout end
+
+            var activity_data = self._private.setItemsActivity(type, $items, data.current_index, orientation);
+            $container.css('height',activity_data.new_container_height+'px');
+            self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+
+            activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
+            data.new_container_height = activity_data.new_container_height;
+        }
+        else {
+            data = false;
+        }
+
+        return data;
+    };
+
     var CableSlider = function (settings) {
         var self = this;
         self._private = new _private();
@@ -560,6 +701,9 @@
 
         self._private.build();
         self._private.load();
+        // first adjust
+        self._private.prepareAdjust('slide');
+        self._private.prepareAdjust('thumb');
         self.adjust(false, true);
 
         self.trigger('after_create');
@@ -614,223 +758,45 @@
         if (_static.elementExists(self.elements.$slides)) {
             self.trigger('adjust');
 
-            self._private.applySettings();
+            var slide_adjust_data = self._private.prepareAdjust('slide'),
+                thumb_adjust_data = self._private.prepareAdjust('thumb');
 
-            var current_index = self.properties.current_index,
-                new_index = self.properties.new_index,
-                adjust_slides = self.elements.$slides.length > self.settings.shown,
-                adjust_thumbs = (_static.elementExists(self.elements.$thumbs)) ? self.elements.$thumbs.length > self.settings.thumbs_shown : false;
-
-            self.elements.$container.css({'transition': 'all 0s ease'});
-            self.elements.$wrapper.css({'transition': 'all 0s ease'});
-
-            // slides
-            self._private.buildClones('slide');
-
-            var container_width = self.elements.$container.get(0).getBoundingClientRect().width,
-                container_height = self.elements.$container.get(0).getBoundingClientRect().height;
-
-            //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-
-            var slide_margin = self.settings.margin,
-                slide_width = (container_width - (slide_margin * (self.settings.shown - 1))) / self.settings.shown,
-                set_width = 0,
-                set_height = 0,
-                slide_css = {};
-
-            if (self.settings.orientation == 'vertical') {
-                slide_css = {
-                    'width': container_width,
-                    'height': 'auto',
-                    'float': 'none',
-                    'margin-bottom': slide_margin + 'px'
-                };
-            }
-            else {
-                slide_css = {
-                    'width': (slide_width) + 'px',
-                    'height': 'auto',
-                    'float': 'left',
-                    'margin-right': slide_margin + 'px'
-                };
-            }
-
-            self.elements.$slides
-                .add(self.elements.$slide_clones_before)
-                .add(self.elements.$slide_clones_after)
-                .css(slide_css)
-                .each(function () {
-                    set_width += $(this).outerWidth(true);
-                    set_height += $(this).outerHeight(true);
-                });
-
-            if (self.settings.orientation == 'vertical') {
-                self.elements.$wrapper.css({
-                    'width': '',
-                    'height': (set_height + 10) + 'px'
-                });
-            }
-            else {
-                self.elements.$wrapper.css({
-                    'width': (set_width + 10) + 'px',
-                    'height': ''
-                });
-            }
-
-            if (animate && adjust_slides && new_index != current_index) {
-                self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-            }
-
-            self.elements.$slides.removeClass('active part-active');
-            if (_static.elementExists(self.elements.$thumbs)) {
-                self.elements.$thumbs.removeClass('focus');
-            }
-
-            self._private.setCarouselItemsActive('slide',new_index);
-
-            set_width = 0;
-            set_height = 0;
-
-            self.elements.$slides.each(function (index) {
-                var $item = $(this),
-                    item_height = Math.ceil($item[0].getBoundingClientRect().height*1)/1; // should have border-box set for box-sizing
-
-                if ($item.hasClass('part-active')) {
-                    item_height /= 2;
+            if (slide_adjust_data) {
+                //self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                if (animate && self.properties.new_index != self.properties.current_index) {
+                    self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
 
-                if ($item.hasClass('active')) {
-                    if (self.settings.orientation == 'vertical') {
-                        if (!$item.hasClass('last-active')) {
-                            item_height += $item.outerHeight(true)-$item.outerHeight(false);
-                        }
+                if (thumb_adjust_data) {
+                    //self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    if (animate && self.properties.new_index != self.properties.current_index) {
+                        self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    }
+                }
 
-                        set_height += item_height;
+                self.properties.current_index = self.properties.new_index;
+
+                setTimeout(function () {
+                    // animate container height
+                    self.elements.$container.css('height',slide_adjust_data.new_container_height+'px');
+
+                    // animate slides
+                    self._private.setCarouselPosition('slide', slide_adjust_data.new_index, slide_adjust_data.container_width, slide_adjust_data.new_container_height);
+
+                    if (thumb_adjust_data) {
+                        //animate thumb container height
+                        self.elements.$thumbs_container.css('height',thumb_adjust_data.new_container_height+'px');
+
+                        // animate thumbs
+                        self._private.setCarouselPosition('thumb', thumb_adjust_data.new_index, thumb_adjust_data.container_width, thumb_adjust_data.new_container_height);
+
+                        self.trigger('after_adjust');
                     }
                     else {
-                        if (item_height > set_height) {
-                            set_height = item_height;
-                        }
+                        self.trigger('after_adjust');
                     }
-
-                    if (_static.elementExists(self.elements.$thumbs)) {
-                        self.elements.$thumbs.eq(index).addClass('focus');
-                    }
-                }
-            });
-
-            self.elements.$container.css('height', set_height + 'px');
-
-            container_height = set_height;
-
-            self._private.setCarouselPosition('slide', current_index, container_width, container_height);
-
-            self.properties.current_index = new_index;
-
-            setTimeout(function () {
-                // animate container height
-
-
-                // animate slides
-                self._private.setCarouselPosition('slide', new_index, container_width, set_height);
-
-                if (_static.elementExists(self.elements.$thumbs) && self.elements.$thumbs.length == self.elements.$slides.length) {
-                    setTimeout(function () {
-                        self.elements.$thumbs_container.css({'transition': 'all 0s ease'});
-                        self.elements.$thumbs_wrapper.css({'transition': 'all 0s ease'});
-
-                        self._private.buildClones('thumb');
-
-                        var thumbs_container_width = self.elements.$thumbs_container.get(0).getBoundingClientRect().width,
-                            thumbs_container_height = self.elements.$thumbs_container.get(0).getBoundingClientRect().height;
-
-                        //self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-
-                        var thumb_margin = self.settings.thumbs_margin,
-                            thumb_width = (thumbs_container_width - (thumb_margin * (self.settings.thumbs_shown - 1))) / self.settings.thumbs_shown,
-                            thumb_height = (thumbs_container_height - (thumb_margin * (self.settings.thumbs_shown - 1))) / self.settings.thumbs_shown,
-                            thumb_css = {};
-                        set_width = 0;
-                        set_height = 0;
-
-                        if (self.settings.thumbs_orientation == 'vertical') {
-                            thumb_css = {
-                                'width': 'auto',
-                                'height': (thumb_height) + 'px',
-                                'float': 'none',
-                                'margin-bottom': thumb_margin + 'px'
-                            };
-                        }
-                        else {
-                            thumb_css = {
-                                'width': (thumb_width) + 'px',
-                                'height': 'auto',
-                                'float': 'left',
-                                'margin-right': thumb_margin + 'px'
-                            };
-                        }
-
-                        self.elements.$thumbs
-                            .add(self.elements.$thumb_clones_before)
-                            .add(self.elements.$thumb_clones_after)
-                            .css(thumb_css)
-                            .each(function () {
-                                set_width += $(this).outerWidth(true);
-                                set_height += $(this).outerHeight(true);
-                            });
-
-                        if (self.settings.thumbs_orientation == 'vertical') {
-                            self.elements.$thumbs_wrapper.css('height', (set_height + 10) + 'px');
-                        }
-                        else {
-                            self.elements.$thumbs_wrapper.css('width', (set_width + 10) + 'px');
-                        }
-
-                        if (animate && adjust_thumbs && new_index != current_index) {
-                            self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-                        }
-
-                        self._private.setCarouselPosition('thumb', current_index, thumbs_container_width, thumbs_container_height);
-
-
-                        setTimeout(function () {
-                            self.elements.$thumbs.removeClass('active');
-
-                            if (self.settings.thumbs_orientation == 'vertical') {
-                                thumbs_container_height = _static.getJustHeight(self.elements.$thumbs_container.parent());
-                                self.elements.$thumbs_container.css('height', thumbs_container_height + 'px');
-                            }
-
-                            self._private.setCarouselPosition('thumb', new_index, thumbs_container_width, thumbs_container_height);
-
-                            set_width = 0;
-                            set_height = 0;
-
-                            self.elements.$thumbs.each(function () {
-                                var $item = $(this);
-                                if ($item.hasClass('active')) {
-                                    if (self.settings.thumbs_orientation != 'vertical') {
-                                        var item_height = $item[0].getBoundingClientRect().height + ($item.outerHeight(true) - $item.outerHeight(false)); // should have border-box set for box-sizing
-                                        if (item_height > set_height) {
-                                            set_height = item_height;
-                                        }
-                                    }
-                                }
-                            });
-
-                            if (self.settings.thumbs_orientation != 'vertical') {
-                                self.elements.$thumbs_container.css('height', set_height + 'px');
-                            }
-
-                            self.trigger('after_adjust');
-                        }, 0);
-
-                    }, 0);
-                }
-                else {
-                    self.trigger('after_adjust');
-                }
-            }, 0);
+                }, 0);
+            }
         }
     };
 
