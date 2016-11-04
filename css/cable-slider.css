@@ -45,7 +45,7 @@
     cursor:pointer;
 }
 
-.cable-slider-sentinel img, .cable-slider-slide img, .cable-slider-thumb img {
+.cable-slider-slide img, .cable-slider-thumb img {
     display:block;
     max-width:100%;
     height:auto;
