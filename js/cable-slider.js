@@ -112,8 +112,8 @@
             direction: 1,
             auto_play_timer: false,
             lazy_adjust_timer: false,
-            container_height_easing: '',
-            wrapper_transform_easing: ''
+            container_height_easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
+            wrapper_transform_easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
         };
         self.elements = {
             $root: null,
@@ -930,7 +930,7 @@
                 new_translate_position = 0;
 
             if (slide_adjust_data) {
-                self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                self.elements.$container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
                 if (animate) {
                     if (self.settings.orientation == 'vertical') {
                         old_translate_position = self.elements.$wrapper.data('translate-y');
@@ -944,15 +944,15 @@
 
                     transition_seconds = Math.round(difference/9)/100;
                     if (transition_seconds > 1) transition_seconds = 1;
-                    else if (transition_seconds < 0.2) transition_seconds = 0.2;
+                    else if (transition_seconds < 0.3) transition_seconds = 0.3;
 
-                    self.elements.$wrapper.css({'transition': 'transform '+transition_seconds+'s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    self.elements.$wrapper.css({'transition': 'transform '+transition_seconds+'s '+self.properties.wrapper_transform_easing});
                 }
 
                 if (thumb_adjust_data) {
-                    self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    self.elements.$thumbs_container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
                     if (animate) {
-                        self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                        self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s '+self.properties.wrapper_transform_easing});
                     }
                 }
 
