@@ -111,7 +111,9 @@
             new_index: 0,
             direction: 1,
             auto_play_timer: false,
-            lazy_adjust_timer: false
+            lazy_adjust_timer: false,
+            container_height_easing: '',
+            wrapper_transform_easing: ''
         };
         self.elements = {
             $root: null,
@@ -188,18 +190,18 @@
         return orientation == 'vertical' ? (($first_item.offset().top - $wrapper.offset().top)) : (($first_item.offset().left - $wrapper.offset().left));
     };
 
-    _private.prototype.setCarouselPosition = function (type, new_index, container_width, container_height) {
+    _private.prototype.getNewCarouselPosition = function (type, new_index, container_width, container_height) {
         var self = this.self;
         new_index = _static.param(new_index, false);
 
         var shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
             align = type == 'thumb' ? self.settings.thumbs_align : self.settings.align,
             orientation = type == 'thumb' ? self.settings.thumbs_orientation : self.settings.orientation,
-            items_length = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs.length : self.elements.$slides.length,
-            $wrapper = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
-            $items = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs : self.elements.$slides,
-            $clones_before = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
-            $clones_after = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after;
+            items_length = type == 'thumb' ? self.elements.$thumbs.length : self.elements.$slides.length,
+            $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
+            $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
+            $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after;
 
         var container_size = orientation == 'vertical' ? container_height : container_width,
             new_position = 0,
@@ -229,16 +231,26 @@
         }
 
         if (orientation == 'vertical') {
-            $wrapper.css('transform', 'translate3d(0px,' + (new_position * -1) + 'px,0px)');
-            $wrapper.data('translateX',0);
-            $wrapper.data('translateY',new_position*-1);
+            return {
+                translate_x:0,
+                translate_y:new_position*-1
+            };
         }
         else {
-            $wrapper.css('transform', 'translate3d(' + (new_position * -1) + 'px,0px,0px)');
-            $wrapper.data('translateX',new_position*-1);
-            $wrapper.data('translateY',0);
+            return {
+                translate_x:new_position*-1,
+                translate_y:0
+            };
         }
 
+    };
+
+    _private.prototype.setCarouselPosition = function(type,translate_x,translate_y){
+        var self = this.self;
+        var $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper;
+        $wrapper.css('transform', 'translate3d('+(translate_x)+'px,' + (translate_y) + 'px,0px)');
+        $wrapper.data('translate-x',translate_x);
+        $wrapper.data('translate-y',translate_y);
     };
 
     _private.prototype.getRealMargin = function(margin,container_width) {
@@ -261,7 +273,7 @@
 
         var shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
             align = type == 'thumb' ? self.settings.thumbs_align : self.settings.align,
-            $items = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumbs : self.elements.$slides,
+            $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
             min_index = new_index,
             max_index = new_index + (shown - 1);
 
@@ -408,8 +420,8 @@
                 start_y = new_start_y;
                 move_x = start_x;
                 move_y = start_y;
-                wrapper_x = self.elements.$wrapper.data('translateX');
-                wrapper_y = self.elements.$wrapper.data('translateY');
+                wrapper_x = self.elements.$wrapper.data('translate-x');
+                wrapper_y = self.elements.$wrapper.data('translate-y');
             },
             move = function(new_move_x,new_move_y) {
                 move_x = new_move_x;
@@ -418,14 +430,14 @@
                 if (self.settings.orientation == 'vertical') {
                     new_position = wrapper_y+(move_y-start_y);
                     self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
-                    self.elements.$wrapper.data('translateX',0);
-                    self.elements.$wrapper.data('translateY',new_position);
+                    self.elements.$wrapper.data('translate-x',0);
+                    self.elements.$wrapper.data('translate-y',new_position);
                 }
                 else {
                     new_position = wrapper_x+(move_x-start_x);
                     self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
-                    self.elements.$wrapper.data('translateX',new_position);
-                    self.elements.$wrapper.data('translateY',0);
+                    self.elements.$wrapper.data('translate-x',new_position);
+                    self.elements.$wrapper.data('translate-y',0);
                 }
             },
             end = function() {
@@ -695,8 +707,8 @@
 
         var data,
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
-            $clones_before = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
-            $clones_after = type == 'thumb' && _static.elementExists(self.elements.$thumbs) ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after,
+            $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after,
             $container = type == 'thumb' ? self.elements.$thumbs_container : self.elements.$container,
             $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
             shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
@@ -777,7 +789,8 @@
             $container.css('height',activity_data.new_container_height+'px');
 
             if (!animate) {
-                self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+                var new_carousel_position_data = self._private.getNewCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+                self._private.setCarouselPosition(type,new_carousel_position_data.translate_x,new_carousel_position_data.translate_y);
             }
 
             activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
@@ -908,12 +921,32 @@
             self.trigger('adjust');
 
             var slide_adjust_data = self._private.prepareAdjust('slide',animate),
-                thumb_adjust_data = self._private.prepareAdjust('thumb',animate);
+                thumb_adjust_data = self._private.prepareAdjust('thumb',animate),
+                new_slide_carousel_position_data = self._private.getNewCarouselPosition('slide', slide_adjust_data.new_index, slide_adjust_data.container_width, slide_adjust_data.new_container_height),
+                new_thumb_carousel_position_data = self._private.getNewCarouselPosition('thumb', thumb_adjust_data.new_index, thumb_adjust_data.container_width, thumb_adjust_data.new_container_height),
+                transition_seconds = 0,
+                difference = 0,
+                old_translate_position = 0,
+                new_translate_position = 0;
 
             if (slide_adjust_data) {
                 self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 if (animate) {
-                    self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
+                    if (self.settings.orientation == 'vertical') {
+                        old_translate_position = self.elements.$wrapper.data('translate-y');
+                        new_translate_position = new_slide_carousel_position_data.translate_y;
+                    }
+                    else {
+                        old_translate_position = self.elements.$wrapper.data('translate-x');
+                        new_translate_position = new_slide_carousel_position_data.translate_x;
+                    }
+                    difference = Math.abs(new_translate_position-old_translate_position);
+
+                    transition_seconds = Math.round(difference/9)/100;
+                    if (transition_seconds > 1) transition_seconds = 1;
+                    else if (transition_seconds < 0.2) transition_seconds = 0.2;
+
+                    self.elements.$wrapper.css({'transition': 'transform '+transition_seconds+'s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
 
                 if (thumb_adjust_data) {
@@ -930,14 +963,14 @@
                     self.elements.$container.css('height',slide_adjust_data.new_container_height+'px');
 
                     // animate slides
-                    self._private.setCarouselPosition('slide', slide_adjust_data.new_index, slide_adjust_data.container_width, slide_adjust_data.new_container_height);
+                    self._private.setCarouselPosition('slide',new_slide_carousel_position_data.translate_x,new_slide_carousel_position_data.translate_y);
 
                     if (thumb_adjust_data) {
                         //animate thumb container height
                         self.elements.$thumbs_container.css('height',thumb_adjust_data.new_container_height+'px');
 
                         // animate thumbs
-                        self._private.setCarouselPosition('thumb', thumb_adjust_data.new_index, thumb_adjust_data.container_width, thumb_adjust_data.new_container_height);
+                        self._private.setCarouselPosition('thumb',new_thumb_carousel_position_data.translate_x,new_thumb_carousel_position_data.translate_y);
 
                         self.trigger('after_adjust');
                     }
