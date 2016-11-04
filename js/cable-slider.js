@@ -391,6 +391,119 @@
         }
     };
 
+    _private.prototype.attachDragEvents = function() {
+        var self = this.self;
+        var disable_mouse = false,
+            start_x = 0,
+            start_y = 0,
+            move_x = 0,
+            move_y = 0,
+            wrapper_x = 0,
+            wrapper_y = 0,
+            new_position = 0,
+            old_position = 0,
+            start = function(new_start_x,new_start_y){
+                self.elements.$wrapper.css('transition','all 0s ease');
+                start_x = new_start_x;
+                start_y = new_start_y;
+                move_x = start_x;
+                move_y = start_y;
+                wrapper_x = self.elements.$wrapper.data('translateX');
+                wrapper_y = self.elements.$wrapper.data('translateY');
+            },
+            move = function(new_move_x,new_move_y) {
+                move_x = new_move_x;
+                move_y = new_move_y;
+
+                if (self.settings.orientation == 'vertical') {
+                    new_position = wrapper_y+(move_y-start_y);
+                    self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
+                    self.elements.$wrapper.data('translateX',0);
+                    self.elements.$wrapper.data('translateY',new_position);
+                }
+                else {
+                    new_position = wrapper_x+(move_x-start_x);
+                    self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
+                    self.elements.$wrapper.data('translateX',new_position);
+                    self.elements.$wrapper.data('translateY',0);
+                }
+            },
+            end = function() {
+                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                    $check_slide,
+                    item_position;
+
+                if (self.settings.orientation == 'vertical') {
+                    old_position = wrapper_y;
+                    new_position = wrapper_y+(move_y-start_y);
+                }
+                else {
+                    old_position = wrapper_x;
+                    new_position = wrapper_x+(move_x-start_x);
+                }
+
+                if (new_position < old_position) {
+                    // go right
+                    for (var j=self.elements.$slides.length-1; j>=0; j--) {
+                        $check_slide = self.elements.$slides.eq(j);
+                        item_position = self._private.getItemPosition($check_slide,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
+                        if (item_position <= (new_position-8)*-1) {
+                            if (j == self.properties.current_index && j < self.elements.$slides.length-1) {
+                                j++;
+                            }
+                            self.goTo(j,1);
+                            break;
+                        }
+                    }
+                }
+                else if (new_position > old_position) {
+                    // go left
+                    for (var i=0; i<self.elements.$slides.length; i++) {
+                        $check_slide = self.elements.$slides.eq(i);
+                        item_position = self._private.getItemPosition($check_slide,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
+                        if (item_position >= (new_position+8)*-1) {
+                            if (i == self.properties.current_index && i > 0) {
+                                i--;
+                            }
+                            self.goTo(i,-1);
+                            break;
+                        }
+                    }
+                }
+            };
+        self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
+            disable_mouse = true;
+            start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY);
+            _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
+                e.preventDefault();
+                move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY);
+                return false;
+            });
+            _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
+                _static.$document.off('touchmove.'+_static._event_namespace);
+                _static.$document.off('touchend.'+_static._event_namespace);
+                disable_mouse = false;
+                end();
+            });
+        });
+
+        self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
+            if (!disable_mouse && e.which == 1) {
+                start(e.pageX,e.pageY);
+                _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
+                    e.preventDefault();
+                    move(e.pageX,e.pageY);
+                    return false;
+                });
+                _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
+                    _static.$document.off('mousemove.'+_static._event_namespace);
+                    _static.$document.off('mouseup.'+_static._event_namespace);
+                    end();
+                });
+            }
+        });
+    };
+
     _private.prototype.build = function () {
         var self = this.self;
         if (!_static.elementExists(self.elements.$container)) {
@@ -473,83 +586,9 @@
                 self.prev();
             });
 
-            // add all of the below to a function to handle dragging/swiping
-
-            var disable_mouse = false;
-            self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
-                disable_mouse = true;
-                var startX = e.originalEvent.touches[0].pageX,
-                    startY = e.originalEvent.touches[0].pageY,
-                    moveX = startX,
-                    moveY = startY,
-                    wrapperX = self.elements.$wrapper.data('translateX'),
-                    wrapperY = self.elements.$wrapper.data('translateY');
-                self.elements.$wrapper.css('transition','all 0s ease');
-                _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
-                    e.preventDefault();
-                    moveX = e.originalEvent.touches[0].pageX;
-                    moveY = e.originalEvent.touches[0].pageY;
-
-                    var new_position = 0;
-
-                    if (self.settings.orientation == 'vertical') {
-                        new_position = wrapperY+(moveY-startY);
-                        self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
-                        self.elements.$wrapper.data('translateX',0);
-                        self.elements.$wrapper.data('translateY',new_position);
-                    }
-                    else {
-                        new_position = wrapperX+(moveX-startX);
-                        self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
-                        self.elements.$wrapper.data('translateX',new_position);
-                        self.elements.$wrapper.data('translateY',0);
-                    }
-
-                    return false;
-                });
-                _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
-                    _static.$document.off('touchmove.'+_static._event_namespace);
-                    _static.$document.off('touchend.'+_static._event_namespace);
-                    disable_mouse = false;
-                });
-            });
-
-            self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
-                if (!disable_mouse && e.which == 1) {
-                    var startX = e.pageX,
-                        startY = e.pageY,
-                        moveX = startX,
-                        moveY = startY,
-                        wrapperX = self.elements.$wrapper.data('translateX'),
-                        wrapperY = self.elements.$wrapper.data('translateY');
-                    self.elements.$wrapper.css('transition','all 0s ease');
-                    _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
-                        e.preventDefault();
-                        moveX = e.pageX;
-                        moveY = e.pageY;
-
-                        var new_position = 0;
-
-                        if (self.settings.orientation == 'vertical') {
-                            new_position = wrapperY+(moveY-startY);
-                            self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
-                            self.elements.$wrapper.data('translateX',0);
-                            self.elements.$wrapper.data('translateY',new_position);
-                        }
-                        else {
-                            new_position = wrapperX+(moveX-startX);
-                            self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
-                            self.elements.$wrapper.data('translateX',new_position);
-                            self.elements.$wrapper.data('translateY',0);
-                        }
-                        return false;
-                    });
-                    _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
-                        _static.$document.off('mousemove.'+_static._event_namespace);
-                        _static.$document.off('mouseup.'+_static._event_namespace);
-                    });
-                }
-            });
+            if (self.settings.drag) {
+                self._private.attachDragEvents();
+            }
 
             if (_static.elementExists($thumbs)) {
                 $thumbs.each(function (index) {
@@ -649,8 +688,10 @@
         return data;
     };
 
-    _private.prototype.prepareAdjust = function(type) {
+    _private.prototype.prepareAdjust = function(type,animate) {
         var self = this.self;
+
+        animate = _static.param(animate, false);
 
         var data,
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
@@ -734,7 +775,10 @@
 
             var activity_data = self._private.setItemsActivity(type, $items, data.current_index, orientation);
             $container.css('height',activity_data.new_container_height+'px');
-            //self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+
+            if (!animate) {
+                self._private.setCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
+            }
 
             activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
             data.new_container_height = activity_data.new_container_height;
@@ -768,7 +812,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.0.8';
+    CableSlider.prototype.version = '0.1.0';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -779,6 +823,7 @@
         margin: false,
         loop: false,
         continuous: false,
+        drag: true,
         thumbs_container: false,
         thumbs_next: false,
         thumbs_prev: false,
@@ -862,18 +907,18 @@
         if (_static.elementExists(self.elements.$slides)) {
             self.trigger('adjust');
 
-            var slide_adjust_data = self._private.prepareAdjust('slide'),
-                thumb_adjust_data = self._private.prepareAdjust('thumb');
+            var slide_adjust_data = self._private.prepareAdjust('slide',animate),
+                thumb_adjust_data = self._private.prepareAdjust('thumb',animate);
 
             if (slide_adjust_data) {
                 self.elements.$container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-                if (animate && self.properties.new_index != self.properties.current_index) {
+                if (animate) {
                     self.elements.$wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                 }
 
                 if (thumb_adjust_data) {
                     self.elements.$thumbs_container.css({'transition':'height 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
-                    if (animate && self.properties.new_index != self.properties.current_index) {
+                    if (animate) {
                         self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1)'});
                     }
                 }
