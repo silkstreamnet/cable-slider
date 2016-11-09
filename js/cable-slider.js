@@ -473,8 +473,8 @@
                 return false;
             },
             end = function(type) {
-                _static.$document.off('touchmove.'+_static._event_namespace);
-                _static.$document.off('touchend.'+_static._event_namespace);
+                _static.$window.off('touchmove.'+_static._event_namespace);
+                _static.$window.off('touchend.'+_static._event_namespace);
                 _static.$document.off('mousemove.'+_static._event_namespace);
                 _static.$document.off('mouseup.'+_static._event_namespace);
                 disable_mouse = false;
@@ -527,10 +527,10 @@
         self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
             disable_mouse = true;
             start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
-            _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
+            _static.$window.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
                 return move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
             });
-            _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
+            _static.$window.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
                 end('touch');
             });
         });
