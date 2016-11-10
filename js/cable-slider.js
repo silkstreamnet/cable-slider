@@ -344,19 +344,21 @@
             $items.each(function (index) {
                 var $item = $(this);
                 if (index == max_index) {
-                    $item.addClass('active last-active');
+                    $item.addClass('last-active');
                 }
-                else if (index == min_index) {
-                    $item.addClass('active first-active');
+                if (index == min_index) {
+                    $item.addClass('first-active');
                 }
-                else if (index >= min_index && index <= max_index) {
+                if (index >= min_index && index <= max_index) {
                     $item.addClass('active');
                 }
-                else if (index != max_index && index == Math.ceil(max_index)) {
-                    $item.addClass('active last-active part-active');
-                }
-                else if (index != min_index && index == Math.floor(min_index)) {
-                    $item.addClass('active first-active part-active');
+                else {
+                    if (index != max_index && index == Math.ceil(max_index)) {
+                        $item.addClass('active last-active part-active');
+                    }
+                    if (index != min_index && index == Math.floor(min_index)) {
+                        $item.addClass('active first-active part-active');
+                    }
                 }
             });
         }
@@ -412,6 +414,7 @@
             $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
             shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
+            continuous = type == 'thumb' ? self.settings.thumbs_continuous : self.settings.continuous,
             i;
 
         if (_static.elementExists($clones_before)) {
@@ -421,7 +424,7 @@
             $clones_after.remove();
         }
 
-        if (self.settings.continuous && _static.elementExists($items) && $items.length > shown) {
+        if (continuous && _static.elementExists($items) && $items.length > shown) {
             $clones_before = $([]);
             $clones_after = $([]);
             for (i = $items.length - 1; i >= $items.length - shown; i--) {
@@ -571,50 +574,122 @@
                 }
 
                 if (j>=0) {
-                    if (j == self.properties.current_index && j_difference > capture_space) {
-                        if (old_position > new_position && self.properties.current_index < self.elements.$slides.length-1) {
-                            j++;
+                    if (j == self.properties.current_index) {
+                        if (j_difference > capture_space) {
+                            if (old_position > new_position && self.properties.current_index < self.elements.$slides.length-1) {
+                                j++;
+                            }
+                            else if (old_position < new_position && self.properties.current_index > 0) {
+                                j--;
+                            }
                         }
-                        else if (old_position < new_position && self.properties.current_index > 0) {
-                            j--;
+                        else {
+                            captured = false;
                         }
                     }
                     self.goTo(j,0);
                 }
-
-                captured = false;
             };
 
-        self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
-            disable_mouse = true;
-            start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
-            _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
-                return move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
+        if (_static.elementExists(self.elements.$container)) {
+            self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
+                disable_mouse = true;
+                start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
+                _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
+                    return move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
+                });
+                _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
+                    return end(e,'touch');
+                });
             });
-            _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
-                return end(e,'touch');
-            });
-        });
 
-        self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
-            if (!disable_mouse && e.which == 1) {
-                start(e.pageX,e.pageY,e,'mouse');
-                _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
-                    return move(e.pageX,e.pageY,e,'mouse');
-                });
-                _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
-                    return end(e,'mouse');
-                });
+            self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
+                if (!disable_mouse && e.which == 1) {
+                    start(e.pageX,e.pageY,e,'mouse');
+                    _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
+                        return move(e.pageX,e.pageY,e,'mouse');
+                    });
+                    _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
+                        return end(e,'mouse');
+                    });
+                }
+            });
+
+            self.elements.$container.off('click.'+_static._event_namespace).on('click.'+_static._event_namespace, function(e) {
+                if (captured) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+    };
+
+    _private.prototype.attachEvents = function() {
+        var self = this.self;
+
+        var pauseAutoPlay = function(){
+            self.pause();
+        };
+        var resumeAutoPlay = function(){
+            if (self.settings.auto_play) {
+                self.play();
             }
-        });
+        };
 
-        self.elements.$container.off('click.'+_static._event_namespace).on('click.'+_static._event_namespace, function(e) {
-            if (captured) {
-                e.stopImmediatePropagation();
+        // attach listeners
+        if (_static.elementExists(self.elements.$next)) {
+            self.elements.$next.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 e.preventDefault();
-                return false;
+                self.next();
+            });
+            if (self.settings.hover_pause) {
+                self.elements.$next
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
             }
-        });
+        }
+        if (_static.elementExists(self.elements.$prev)) {
+            self.elements.$prev.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
+                e.preventDefault();
+                self.prev();
+            });
+            if (self.settings.hover_pause) {
+                self.elements.$prev
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+            }
+        }
+
+        if (_static.elementExists(self.elements.$container)) {
+            if (self.settings.hover_pause) {
+                self.elements.$container
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+            }
+        }
+
+        if (self.settings.drag) {
+            self._private.attachDragEvents();
+        }
+
+        if (_static.elementExists(self.elements.$thumbs_container)) {
+            if (self.settings.hover_pause) {
+                self.elements.$thumbs_container
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+            }
+        }
+
+        if (_static.elementExists(self.elements.$thumbs)) {
+            self.elements.$thumbs.each(function (index) {
+                var $thumb = $(this);
+                $thumb.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
+                    e.preventDefault();
+                    self.goTo(index);
+                });
+            });
+        }
     };
 
     _private.prototype.build = function () {
@@ -689,29 +764,7 @@
             self.elements.$next = $(self.settings.next);
             self.elements.$prev = $(self.settings.prev);
 
-            // attach listeners
-            self.elements.$next.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
-                e.preventDefault();
-                self.next();
-            });
-            self.elements.$prev.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
-                e.preventDefault();
-                self.prev();
-            });
-
-            if (self.settings.drag) {
-                self._private.attachDragEvents();
-            }
-
-            if (_static.elementExists($thumbs)) {
-                $thumbs.each(function (index) {
-                    var $thumb = $(this);
-                    $thumb.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
-                        e.preventDefault();
-                        self.goTo(index);
-                    });
-                });
-            }
+            self._private.attachEvents();
 
             if (self.settings.auto_play) {
                 self.play();
@@ -929,7 +982,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.2';
+    CableSlider.prototype.version = '0.1.4';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -938,20 +991,20 @@
         orientation: 'horizontal',
         align: 'left', // for multiple items, set the zero point
         margin: false,
-        loop: false,
+        //loop: false,
         continuous: false,
         drag: true,
         thumbs_container: false,
         thumbs_next: false,
         thumbs_prev: false,
-        thumbs_shown: 5,
+        thumbs_shown: 3,
         thumbs_orientation: 'horizontal',
         thumbs_align: 'center', // for multiple items, set the zero point
         thumbs_margin: false,
-        thumbs_loop: false,
+        //thumbs_loop: false,
         thumbs_continuous: false,
         auto_thumbs: false, // will remove existing html inside thumbs container if it exists
-        bullets_container: false,
+        //bullets_container: false,
         auto_play: false, // set a number for a time period. false or 0 will not auto play.
         hover_pause: false,
         auto_create: true,
