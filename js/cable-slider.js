@@ -500,7 +500,6 @@
                 }
 
                 if (event) {
-                    event.stopPropagation();
                     event.preventDefault();
                 }
 
@@ -572,7 +571,7 @@
                 }
 
                 if (j>=0) {
-                    if (j == self.properties.current_index && j_difference > 15) {
+                    if (j == self.properties.current_index && j_difference > capture_space) {
                         if (old_position > new_position && self.properties.current_index < self.elements.$slides.length-1) {
                             j++;
                         }
@@ -583,15 +582,7 @@
                     self.goTo(j,0);
                 }
 
-                if (captured) {
-                    captured = false;
-                    if (event) {
-                        console.log("stop");
-                        event.stopPropagation();
-                        event.preventDefault();
-                    }
-                    return false;
-                }
+                captured = false;
             };
 
         self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
@@ -614,6 +605,14 @@
                 _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
                     return end(e,'mouse');
                 });
+            }
+        });
+
+        self.elements.$container.off('click.'+_static._event_namespace).on('click.'+_static._event_namespace, function(e) {
+            if (captured) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                return false;
             }
         });
     };
