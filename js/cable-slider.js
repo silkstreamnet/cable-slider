@@ -94,8 +94,45 @@
         return (cs.boxSizing == 'border-box') ? size - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth) : size;
     };
 
-    _static.has3dSupport = function() {
+    _static.has3dSupport = (function() {
+        var el = document.createElement('p'),
+            has3d,
+            transforms = {
+                'webkitTransform':'-webkit-transform',
+                'OTransform':'-o-transform',
+                'msTransform':'-ms-transform',
+                'MozTransform':'-moz-transform',
+                'transform':'transform'
+            };
 
+        // Add it to the body to get the computed style
+        document.body.insertBefore(el, null);
+
+        for(var t in transforms){
+            if (transforms.hasOwnProperty(t)) {
+                if( el.style[t] !== undefined ){
+                    el.style[t] = 'translate3d(1px,1px,1px)';
+                    has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+                }
+            }
+        }
+
+        document.body.removeChild(el);
+
+        return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+    })();
+
+    _static.getTranslatePosition = function(obj,axis) {
+        if(!window.getComputedStyle || (axis !== 'x' && axis !== 'y')) return 0;
+        var style = getComputedStyle(obj),
+            transform = style.transform || style.webkitTransform || style.mozTransform;
+        if (transform) {
+            var matrix3d = transform.match(/^matrix3d\((.+)\)$/);
+            if(matrix3d) return parseFloat(matrix3d[1].split(', ')[axis=='x'?12:13]);
+            var matrix = transform.match(/^matrix\((.+)\)$/);
+            return matrix ? parseFloat(matrix[1].split(', ')[axis=='x'?4:5]) : 0;
+        }
+        return 0;
     };
 
     _private.prototype.reset = function () {
@@ -253,9 +290,12 @@
     _private.prototype.setCarouselPosition = function(type,translate_x,translate_y){
         var self = this.self;
         var $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper;
-        $wrapper.css('transform', 'translate3d('+(translate_x)+'px,' + (translate_y) + 'px,0px)');
-        $wrapper.data('translate-x',translate_x);
-        $wrapper.data('translate-y',translate_y);
+        if (_static.has3dSupport) {
+            $wrapper.css('transform', 'translate3d('+(translate_x)+'px,' + (translate_y) + 'px,0px)');
+        }
+        else {
+            $wrapper.css('transform', 'translate('+(translate_x)+'px,' + (translate_y) + 'px)');
+        }
     };
 
     _private.prototype.getRealMargin = function(margin,container_width) {
@@ -413,7 +453,7 @@
     _private.prototype.attachDragEvents = function() {
         var self = this.self;
         var disable_mouse = false,
-            capture_space = 10,
+            capture_space = 15,
             captured = false,
             start_x = 0,
             start_y = 0,
@@ -424,14 +464,17 @@
             new_position = 0,
             old_position = 0,
             start = function(new_start_x,new_start_y,event,type){
-                self.elements.$wrapper.css('transition','all 0s ease');
                 start_x = new_start_x;
                 start_y = new_start_y;
                 move_x = start_x;
                 move_y = start_y;
-                wrapper_x = self.elements.$wrapper.data('translate-x');
-                wrapper_y = self.elements.$wrapper.data('translate-y');
+                wrapper_x = _static.getTranslatePosition(self.elements.$wrapper.get(0),'x'),
+                wrapper_y = _static.getTranslatePosition(self.elements.$wrapper.get(0),'y'),
                 captured = false;
+                self.elements.$wrapper.css('transition','all 0s ease');
+                self._private.setCarouselPosition('slide',wrapper_x,wrapper_y);
+
+                move(new_start_x,new_start_y,false,type);
             },
             move = function(new_move_x,new_move_y,event,type) {
                 move_x = new_move_x;
@@ -456,81 +499,101 @@
                     captured = true;
                 }
 
-                event.preventDefault();
+                if (event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
 
                 if (captured) {
                     if (self.settings.orientation == 'vertical') {
+                        old_position = wrapper_y;
+                        if (old_position < furthest_position) old_position = furthest_position;
+                        if (old_position > nearest_position) old_position = nearest_position;
                         new_position = wrapper_y+(move_y-start_y);
                         if (new_position < furthest_position) new_position = furthest_position+((new_position-furthest_position)/3);
                         if (new_position > nearest_position) new_position = nearest_position+((new_position-nearest_position)/3);
-                        self.elements.$wrapper.css('transform', 'translate3d(0px,' + (new_position) + 'px,0px)');
-                        self.elements.$wrapper.data('translate-x',0);
-                        self.elements.$wrapper.data('translate-y',new_position);
+                        self._private.setCarouselPosition('slide',0,new_position);
                     }
                     else {
+                        old_position = wrapper_x;
+                        if (old_position < furthest_position) old_position = furthest_position;
+                        if (old_position > nearest_position) old_position = nearest_position;
                         new_position = wrapper_x+(move_x-start_x);
                         if (new_position < furthest_position) new_position = furthest_position+((new_position-furthest_position)/3);
                         if (new_position > nearest_position) new_position = nearest_position+((new_position-nearest_position)/3);
-                        self.elements.$wrapper.css('transform', 'translate3d(' + (new_position) + 'px,0px,0px)');
-                        self.elements.$wrapper.data('translate-x',new_position);
-                        self.elements.$wrapper.data('translate-y',0);
+                        self._private.setCarouselPosition('slide',new_position,0);
                     }
                 }
 
                 return false;
             },
-            end = function(type) {
+            end = function(event,type) {
                 _static.$document.off('touchmove.'+_static._event_namespace);
                 _static.$document.off('touchend.'+_static._event_namespace);
                 _static.$document.off('mousemove.'+_static._event_namespace);
                 _static.$document.off('mouseup.'+_static._event_namespace);
                 disable_mouse = false;
 
-                if (captured) {
-                    var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-                        $check_slide,
-                        item_position;
+                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                    $check_item,
+                    item_position,
+                    j=-1,
+                    j_difference=-1,
+                    n_position,
+                    n_difference;
+                for (var i=0; i<self.elements.$slides.length; i++) {
+                    $check_item = self.elements.$slides.eq(i);
+                    item_position = self._private.getItemPosition($check_item,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
+
+                    n_position = new_position*-1;
 
                     if (self.settings.orientation == 'vertical') {
-                        old_position = wrapper_y;
-                        new_position = wrapper_y+(move_y-start_y);
+                        if (self.settings.align == 'bottom') {
+                            n_position -= container_size - $check_item.get(0).getBoundingClientRect().height;
+                        }
+                        else if (self.settings.align == 'center') {
+                            n_position -= (container_size - $check_item.get(0).getBoundingClientRect().height) / 2;
+                        }
                     }
                     else {
-                        old_position = wrapper_x;
-                        new_position = wrapper_x+(move_x-start_x);
+                        if (self.settings.align == 'right') {
+                            n_position -= container_size - $check_item.get(0).getBoundingClientRect().width;
+                        }
+                        else if (self.settings.align == 'center') {
+                            n_position -= (container_size - $check_item.get(0).getBoundingClientRect().width) / 2;
+                        }
                     }
 
-                    if (new_position < old_position) {
-                        // go right
-                        for (var j=self.elements.$slides.length-1; j>=0; j--) {
-                            $check_slide = self.elements.$slides.eq(j);
-                            item_position = self._private.getItemPosition($check_slide,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
-                            if (item_position <= (new_position-capture_space)*-1) {
-                                if (j == self.properties.current_index && j < self.elements.$slides.length-1) {
-                                    j++;
-                                }
-                                self.goTo(j,1);
-                                break;
-                            }
+                    n_difference = Math.abs(item_position-n_position);
+                    if (j_difference < 0 || n_difference < j_difference) {
+                        j_difference = n_difference;
+                        j = i;
+                    }
+                }
+
+                if (j>=0) {
+                    if (j == self.properties.current_index && j_difference > 15) {
+                        if (old_position > new_position && self.properties.current_index < self.elements.$slides.length-1) {
+                            j++;
+                        }
+                        else if (old_position < new_position && self.properties.current_index > 0) {
+                            j--;
                         }
                     }
-                    else if (new_position > old_position) {
-                        // go left
-                        for (var i=0; i<self.elements.$slides.length; i++) {
-                            $check_slide = self.elements.$slides.eq(i);
-                            item_position = self._private.getItemPosition($check_slide,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
-                            if (item_position >= (new_position+capture_space)*-1) {
-                                if (i == self.properties.current_index && i > 0) {
-                                    i--;
-                                }
-                                self.goTo(i,-1);
-                                break;
-                            }
-                        }
-                    }
+                    self.goTo(j,0);
+                }
+
+                if (captured) {
                     captured = false;
+                    if (event) {
+                        console.log("stop");
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }
+                    return false;
                 }
             };
+
         self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
             disable_mouse = true;
             start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
@@ -538,7 +601,7 @@
                 return move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
             });
             _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
-                end('touch');
+                return end(e,'touch');
             });
         });
 
@@ -549,7 +612,7 @@
                     return move(e.pageX,e.pageY,e,'mouse');
                 });
                 _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
-                    return end('mouse');
+                    return end(e,'mouse');
                 });
             }
         });
@@ -867,7 +930,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.1';
+    CableSlider.prototype.version = '0.1.2';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -974,27 +1037,21 @@
             if (slide_adjust_data) {
                 self.elements.$container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
                 if (animate) {
-                    if (self.settings.orientation == 'vertical') {
-                        old_translate_position = self.elements.$wrapper.data('translate-y');
-                        new_translate_position = new_slide_carousel_position_data.translate_y;
-                    }
-                    else {
-                        old_translate_position = self.elements.$wrapper.data('translate-x');
-                        new_translate_position = new_slide_carousel_position_data.translate_x;
-                    }
-                    difference = Math.abs(new_translate_position-old_translate_position);
-
-                    transition_seconds = Math.round(difference/9)/100;
+                    difference = Math.abs(slide_adjust_data.new_index-slide_adjust_data.current_index);
+                    transition_seconds = Math.round((difference/5)*100)/100;
                     if (transition_seconds > 1) transition_seconds = 1;
                     else if (transition_seconds < 0.3) transition_seconds = 0.3;
-
                     self.elements.$wrapper.css({'transition': 'transform '+transition_seconds+'s '+self.properties.wrapper_transform_easing});
                 }
 
                 if (thumb_adjust_data) {
                     self.elements.$thumbs_container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
                     if (animate) {
-                        self.elements.$thumbs_wrapper.css({'transition': 'transform 0.5s '+self.properties.wrapper_transform_easing});
+                        difference = Math.abs(thumb_adjust_data.new_index-thumb_adjust_data.current_index);
+                        transition_seconds = Math.round((difference/5)*100)/100;
+                        if (transition_seconds > 1) transition_seconds = 1;
+                        else if (transition_seconds < 0.4) transition_seconds = 0.4;
+                        self.elements.$thumbs_wrapper.css({'transition': 'transform '+transition_seconds+'s '+self.properties.wrapper_transform_easing});
                     }
                 }
 
