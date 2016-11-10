@@ -201,7 +201,6 @@
         var shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
             align = type == 'thumb' ? self.settings.thumbs_align : self.settings.align,
             orientation = type == 'thumb' ? self.settings.thumbs_orientation : self.settings.orientation,
-            items_length = type == 'thumb' ? self.elements.$thumbs.length : self.elements.$slides.length,
             $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper,
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
             $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
@@ -212,25 +211,27 @@
             furthest_position = 0,
             nearest_position = 0;
 
-        if (items_length > shown) {
-            new_position = self._private.getItemPosition($items.eq(new_index), $wrapper, container_size, orientation, align);
-            furthest_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation);
-            nearest_position = self._private.getNearestPosition($items.first(), $wrapper, orientation);
+        if (_static.elementExists($items)) {
+            if ($items.length > shown) {
+                new_position = self._private.getItemPosition($items.eq(new_index), $wrapper, container_size, orientation, align);
+                furthest_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation);
+                nearest_position = self._private.getNearestPosition($items.first(), $wrapper, orientation);
 
-            if (new_position < nearest_position) {
-                new_position = nearest_position;
-            }
+                if (new_position < nearest_position) {
+                    new_position = nearest_position;
+                }
 
-            if (new_position > furthest_position) {
-                new_position = furthest_position;
+                if (new_position > furthest_position) {
+                    new_position = furthest_position;
+                }
             }
-        }
-        else {
-            if (align == 'bottom' || align == 'right') {
-                new_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation);
-            }
-            else if (align == 'center') {
-                new_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation) / 2;
+            else {
+                if (align == 'bottom' || align == 'right') {
+                    new_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation);
+                }
+                else if (align == 'center') {
+                    new_position = self._private.getFurthestPosition($items.last(), $wrapper, container_size, orientation) / 2;
+                }
             }
         }
 
@@ -281,42 +282,44 @@
             min_index = new_index,
             max_index = new_index + (shown - 1);
 
-        if (align == 'bottom' || align == 'right') {
-            min_index = new_index - (shown - 1);
-            max_index = new_index;
-        }
-        else if (align == 'center') {
-            min_index = new_index - ((shown - 1)/2);
-            max_index = new_index + ((shown - 1)/2);
-        }
+        if (_static.elementExists($items)) {
+            if (align == 'bottom' || align == 'right') {
+                min_index = new_index - (shown - 1);
+                max_index = new_index;
+            }
+            else if (align == 'center') {
+                min_index = new_index - ((shown - 1)/2);
+                max_index = new_index + ((shown - 1)/2);
+            }
 
-        if (min_index < 0) {
-            min_index = 0;
-            max_index = ($items.length <= shown) ? $items.length - 1 : shown - 1;
-        }
-        else if (max_index > $items.length - 1) {
-            min_index = $items.length - shown;
-            max_index = $items.length - 1;
-        }
+            if (min_index < 0) {
+                min_index = 0;
+                max_index = ($items.length <= shown) ? $items.length - 1 : shown - 1;
+            }
+            else if (max_index > $items.length - 1) {
+                min_index = $items.length - shown;
+                max_index = $items.length - 1;
+            }
 
-        $items.each(function (index) {
-            var $item = $(this);
-            if (index == max_index) {
-                $item.addClass('active last-active');
-            }
-            else if (index == min_index) {
-                $item.addClass('active first-active');
-            }
-            else if (index >= min_index && index <= max_index) {
-                $item.addClass('active');
-            }
-            else if (index != max_index && index == Math.ceil(max_index)) {
-                $item.addClass('active last-active part-active');
-            }
-            else if (index != min_index && index == Math.floor(min_index)) {
-                $item.addClass('active first-active part-active');
-            }
-        });
+            $items.each(function (index) {
+                var $item = $(this);
+                if (index == max_index) {
+                    $item.addClass('active last-active');
+                }
+                else if (index == min_index) {
+                    $item.addClass('active first-active');
+                }
+                else if (index >= min_index && index <= max_index) {
+                    $item.addClass('active');
+                }
+                else if (index != max_index && index == Math.ceil(max_index)) {
+                    $item.addClass('active last-active part-active');
+                }
+                else if (index != min_index && index == Math.floor(min_index)) {
+                    $item.addClass('active first-active part-active');
+                }
+            });
+        }
     };
 
     _private.prototype.load = function () {
@@ -692,46 +695,49 @@
         var data = {
             new_container_height:0
         };
-        // activity start
 
-        $items.removeClass('active part-active first-active last-active');
-        if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
-            self.elements.$thumbs.removeClass('focus');
-        }
+        if (_static.elementExists($items)) {
+            // activity start
 
-        self._private.setCarouselItemsActive(type, new_index);
-
-        // activity end
-
-        // container height start
-
-        $items.each(function (index) {
-            var $item = $(this),
-                item_height = $item[0].getBoundingClientRect().height; // should have border-box set for box-sizing
-
-            if ($item.hasClass('active')) {
-                if (orientation == 'vertical') {
-                    if (!$item.hasClass('last-active') && !$item.hasClass('part-active')) {
-                        item_height += $item.outerHeight(true) - $item.outerHeight(false);
-                    }
-
-                    if ($item.hasClass('part-active')) {
-                        item_height /= 2;
-                    }
-
-                    data.new_container_height += item_height;
-                }
-                else {
-                    if (item_height > data.new_container_height) {
-                        data.new_container_height = item_height;
-                    }
-                }
-
-                if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
-                    self.elements.$thumbs.eq(index).addClass('focus');
-                }
+            $items.removeClass('active part-active first-active last-active');
+            if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
+                self.elements.$thumbs.removeClass('focus');
             }
-        });
+
+            self._private.setCarouselItemsActive(type, new_index);
+
+            // activity end
+
+            // container height start
+
+            $items.each(function (index) {
+                var $item = $(this),
+                    item_height = $item[0].getBoundingClientRect().height; // should have border-box set for box-sizing
+
+                if ($item.hasClass('active')) {
+                    if (orientation == 'vertical') {
+                        if (!$item.hasClass('last-active') && !$item.hasClass('part-active')) {
+                            item_height += $item.outerHeight(true) - $item.outerHeight(false);
+                        }
+
+                        if ($item.hasClass('part-active')) {
+                            item_height /= 2;
+                        }
+
+                        data.new_container_height += item_height;
+                    }
+                    else {
+                        if (item_height > data.new_container_height) {
+                            data.new_container_height = item_height;
+                        }
+                    }
+
+                    if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
+                        self.elements.$thumbs.eq(index).addClass('focus');
+                    }
+                }
+            });
+        }
 
         return data;
     };
