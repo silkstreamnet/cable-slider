@@ -453,10 +453,30 @@
         }
     };
 
+    _private.prototype.getIndexRange = function() {
+        var self = this.self;
+        var min_index = 0,
+            max_index = self.elements.$slides.length-self.settings.shown;
+
+        if (self.settings.align == 'bottom' || self.settings.align == 'right') {
+            min_index = self.settings.shown-1;
+            max_index = self.elements.$slides.length-1;
+        }
+        else if (self.settings.align == 'center') {
+            min_index = Math.ceil((self.settings.shown-1)/2);
+            max_index = self.elements.$slides.length-Math.ceil((self.settings.shown)/2);
+        }
+
+        return {
+            min:min_index,
+            max:max_index
+        }
+    };
+
     _private.prototype.attachDragEvents = function() {
         var self = this.self;
         var disable_mouse = false,
-            capture_space = 15,
+            capture_space = 10,
             captured = false,
             start_x = 0,
             start_y = 0,
@@ -540,6 +560,7 @@
                     $check_item,
                     item_position,
                     j=-1,
+                    d=0,
                     j_difference=-1,
                     n_position,
                     n_difference;
@@ -551,18 +572,18 @@
 
                     if (self.settings.orientation == 'vertical') {
                         if (self.settings.align == 'bottom') {
-                            n_position -= container_size - $check_item.get(0).getBoundingClientRect().height;
+                            //n_position += container_size - $check_item.get(0).getBoundingClientRect().height;
                         }
                         else if (self.settings.align == 'center') {
-                            n_position -= (container_size - $check_item.get(0).getBoundingClientRect().height) / 2;
+                            //n_position += (container_size - $check_item.get(0).getBoundingClientRect().height) / 2;
                         }
                     }
                     else {
                         if (self.settings.align == 'right') {
-                            n_position -= container_size - $check_item.get(0).getBoundingClientRect().width;
+                            //n_position += container_size - $check_item.get(0).getBoundingClientRect().width;
                         }
                         else if (self.settings.align == 'center') {
-                            n_position -= (container_size - $check_item.get(0).getBoundingClientRect().width) / 2;
+                            //n_position += (container_size - $check_item.get(0).getBoundingClientRect().width) / 2;
                         }
                     }
 
@@ -576,18 +597,23 @@
                 if (j>=0) {
                     if (j == self.properties.current_index) {
                         if (j_difference > capture_space) {
-                            if (old_position > new_position && self.properties.current_index < self.elements.$slides.length-1) {
+                            if (old_position > new_position) {
                                 j++;
+                                d=1;
                             }
-                            else if (old_position < new_position && self.properties.current_index > 0) {
+                            else if (old_position < new_position) {
                                 j--;
+                                d=-1;
                             }
                         }
                         else {
                             captured = false;
                         }
                     }
-                    self.goTo(j,0);
+
+                    if (j>=0) {
+                        self.goTo(j,d);
+                    }
                 }
             };
 
@@ -765,10 +791,6 @@
             self.elements.$prev = $(self.settings.prev);
 
             self._private.attachEvents();
-
-            if (self.settings.auto_play) {
-                self.play();
-            }
         }
     };
 
@@ -789,6 +811,10 @@
             });
 
             if ($slide && new_index >= 0) {
+                var index_range = self._private.getIndexRange();
+                if (new_index<index_range.min) new_index=index_range.min;
+                else if (new_index>index_range.max) new_index=index_range.max;
+
                 self.properties.new_index = new_index;
 
                 if (direction == 1 || direction == -1) {
@@ -982,7 +1008,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.4';
+    CableSlider.prototype.version = '0.1.5';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -1024,6 +1050,12 @@
         self._private.prepareAdjust('slide');
         self._private.prepareAdjust('thumb');
         self.adjust(false, true);
+
+        self.goTo(0,0);
+
+        if (self.settings.auto_play) {
+            self.play();
+        }
 
         self.trigger('after_create');
     };
@@ -1161,26 +1193,9 @@
         var new_index = self.properties.current_index + 1;
         new_index = self._private.getValidSlideNumber(new_index);
 
-        var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-            cur_position = self._private.getItemPosition(self.elements.$slides.eq(self.properties.current_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
-            new_position = self._private.getItemPosition(self.elements.$slides.eq(new_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
-            furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation),
-            nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation);
+        var index_range = self._private.getIndexRange();
+        if (new_index > index_range.max) new_index = index_range.min;
 
-        if (cur_position >= furthest_position && new_position > furthest_position) {
-            new_index = 0;
-        }
-        else if (new_position <= nearest_position && cur_position < nearest_position) {
-            // find first item greater than nearest_position
-            for (var i = 0; i < self.elements.$slides.length; i++) {
-                var $find_slide = $(self.elements.$slides[i]),
-                    find_slide_position = self._private.getItemPosition($find_slide, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
-                if (find_slide_position > nearest_position) {
-                    new_index = i;
-                    break;
-                }
-            }
-        }
         self.goTo(new_index, 1);
     };
 
@@ -1189,28 +1204,9 @@
         var new_index = self.properties.current_index - 1;
         new_index = self._private.getValidSlideNumber(new_index);
 
-        // new position will change based on alignment
-        var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-            cur_position = self._private.getItemPosition(self.elements.$slides.eq(self.properties.current_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
-            new_position = self._private.getItemPosition(self.elements.$slides.eq(new_index), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align),
-            furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation),
-            nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation);
+        var index_range = self._private.getIndexRange();
+        if (new_index < index_range.min) new_index = index_range.max;
 
-        if (cur_position <= nearest_position && new_position < nearest_position) {
-            new_index = self.elements.$slides.length - 1;
-        }
-        else if (new_position >= furthest_position && cur_position > furthest_position) {
-            // find first item less than furthest_position
-            for (var i = self.elements.$slides.length - 1; i >= 0; i--) {
-                var $find_slide = $(self.elements.$slides[i]),
-                    find_slide_position = self._private.getItemPosition($find_slide, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
-                if (find_slide_position < furthest_position) {
-                    new_index = i;
-                    break;
-                }
-            }
-
-        }
         self.goTo(new_index, -1);
     };
 
