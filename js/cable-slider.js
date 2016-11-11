@@ -319,11 +319,13 @@
         var shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
             align = type == 'thumb' ? self.settings.thumbs_align : self.settings.align,
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
+            $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after,
             min_index = new_index,
             max_index = new_index + (shown - 1);
 
         if (_static.elementExists($items)) {
-            $items.removeClass('active part-active first-active last-active');
+            $items.add($clones_before).add($clones_after).removeClass('active part-active first-active last-active');
 
             if (align == 'bottom' || align == 'right') {
                 min_index = new_index - (shown - 1);
@@ -433,7 +435,7 @@
 
             if (shown > min_clones) min_clones = shown;
 
-            for (i = $items.length - 1; i >= $items.length - (min_clones+1); i--) {
+            for (i = $items.length - 1; i >= $items.length - (min_clones + 1); i--) {
                 $new_clone = $items.eq(i).clone();
                 $new_clone.addClass('cable-slider-clone').prependTo($wrapper);
                 $clones_before = $clones_before.add($new_clone);
@@ -515,6 +517,11 @@
                     movement_x = Math.abs(move_x - start_x) - capture_space,
                     movement_y = Math.abs(move_y - start_y) - capture_space;
 
+                if (self.settings.continuous && _static.elementExists(self.elements.$slide_clones_before)) {
+                    //furthest_position = self._private.getFurthestPosition(self.elements.$slide_clones_after.first(), self.elements.$wrapper, container_size, self.settings.orientation) * -1;
+                    //nearest_position = self._private.getNearestPosition(self.elements.$slide_clones_before.eq(self.elements.$slide_clones_before.length-(self.settings.shown)),self.elements.$wrapper,self.settings.orientation) * -1;
+                }
+
                 if (type == 'touch') {
                     if ((movement_x > 0 || movement_y > 0) && ((movement_y >= movement_x && self.settings.orientation == 'vertical') || movement_x >= movement_y)) {
                         captured = true;
@@ -535,8 +542,6 @@
                 if (captured) {
                     if (self.settings.orientation == 'vertical') {
                         old_position = wrapper_y;
-                        if (old_position < furthest_position) old_position = furthest_position;
-                        if (old_position > nearest_position) old_position = nearest_position;
                         new_position = wrapper_y + (move_y - start_y);
                         if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
                         if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
@@ -544,11 +549,25 @@
                     }
                     else {
                         old_position = wrapper_x;
-                        if (old_position < furthest_position) old_position = furthest_position;
-                        if (old_position > nearest_position) old_position = nearest_position;
                         new_position = wrapper_x + (move_x - start_x);
-                        if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
-                        if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                        if (self.settings.continuous) {
+                            if (new_position < furthest_position) {
+                                start_x = move_x;
+                                wrapper_x = self._private.getNearestPosition(self.elements.$slide_clones_before.last(),self.elements.$wrapper,self.settings.orientation) * -1;
+                                old_position = wrapper_x;
+                                new_position = wrapper_x;
+                            }
+                            if (new_position > nearest_position) {
+                                start_x = move_x;
+                                wrapper_x = self._private.getFurthestPosition(self.elements.$slide_clones_after.first(), self.elements.$wrapper, container_size, self.settings.orientation) * -1;
+                                old_position = wrapper_x;
+                                new_position = wrapper_x;
+                            }
+                        }
+                        else {
+                            if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
+                            if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                        }
                         self._private.setCarouselPosition('slide', new_position, 0);
                     }
                 }
@@ -821,12 +840,16 @@
         }
     };
 
-    _private.prototype.setItemsActivity = function (type, $items, new_index, orientation) {
+    _private.prototype.setItemsActivity = function (type, new_index, orientation) {
         var self = this.self;
 
         var data = {
             new_container_height: 0
         };
+
+        var $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
+            $clones_before = type == 'thumb' ? self.elements.$thumb_clones_before : self.elements.$slide_clones_before,
+            $clones_after = type == 'thumb' ? self.elements.$thumb_clones_after : self.elements.$slide_clones_after;
 
         if (_static.elementExists($items)) {
             // activity start
@@ -896,8 +919,6 @@
             $container.css({'transition': 'all 0s ease'});
             $wrapper.css({'transition': 'all 0s ease'});
 
-            self._private.buildClones(type);
-
             data = {
                 current_index: self.properties.current_index,
                 new_index: self.properties.new_index,
@@ -958,7 +979,7 @@
 
             // layout end
 
-            var activity_data = self._private.setItemsActivity(type, $items, data.current_index, orientation);
+            var activity_data = self._private.setItemsActivity(type, data.current_index, orientation);
             $container.css('height', activity_data.new_container_height + 'px');
 
             if (!animate) {
@@ -966,7 +987,7 @@
                 self._private.setCarouselPosition(type, new_carousel_position_data.translate_x, new_carousel_position_data.translate_y);
             }
 
-            activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
+            activity_data = self._private.setItemsActivity(type, data.new_index, orientation);
             data.new_container_height = activity_data.new_container_height;
         }
         else {
