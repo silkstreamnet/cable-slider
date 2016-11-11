@@ -611,9 +611,11 @@
                         }
                     }
 
-                    if (j>=0) {
-                        self.goTo(j,d);
-                    }
+                    var index_range = self._private.getIndexRange();
+                    if (j<index_range.min) j=index_range.min;
+                    else if (j>index_range.max) j=index_range.max;
+
+                    self.goTo(j,d);
                 }
             };
 
