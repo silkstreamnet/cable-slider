@@ -94,23 +94,23 @@
         return (cs.boxSizing == 'border-box') ? size - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth) : size;
     };
 
-    _static.has3dSupport = (function() {
+    _static.has3dSupport = (function () {
         var el = document.createElement('p'),
             has3d,
             transforms = {
-                'webkitTransform':'-webkit-transform',
-                'OTransform':'-o-transform',
-                'msTransform':'-ms-transform',
-                'MozTransform':'-moz-transform',
-                'transform':'transform'
+                'webkitTransform': '-webkit-transform',
+                'OTransform': '-o-transform',
+                'msTransform': '-ms-transform',
+                'MozTransform': '-moz-transform',
+                'transform': 'transform'
             };
 
         // Add it to the body to get the computed style
         document.body.insertBefore(el, null);
 
-        for(var t in transforms){
+        for (var t in transforms) {
             if (transforms.hasOwnProperty(t)) {
-                if( el.style[t] !== undefined ){
+                if (el.style[t] !== undefined) {
                     el.style[t] = 'translate3d(1px,1px,1px)';
                     has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
                 }
@@ -122,15 +122,15 @@
         return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
     })();
 
-    _static.getTranslatePosition = function(obj,axis) {
-        if(!window.getComputedStyle || (axis !== 'x' && axis !== 'y')) return 0;
+    _static.getTranslatePosition = function (obj, axis) {
+        if (!window.getComputedStyle || (axis !== 'x' && axis !== 'y')) return 0;
         var style = getComputedStyle(obj),
             transform = style.transform || style.webkitTransform || style.mozTransform;
         if (transform) {
             var matrix3d = transform.match(/^matrix3d\((.+)\)$/);
-            if(matrix3d) return parseFloat(matrix3d[1].split(', ')[axis=='x'?12:13]);
+            if (matrix3d) return parseFloat(matrix3d[1].split(', ')[axis == 'x' ? 12 : 13]);
             var matrix = transform.match(/^matrix\((.+)\)$/);
-            return matrix ? parseFloat(matrix[1].split(', ')[axis=='x'?4:5]) : 0;
+            return matrix ? parseFloat(matrix[1].split(', ')[axis == 'x' ? 4 : 5]) : 0;
         }
         return 0;
     };
@@ -274,45 +274,45 @@
 
         if (orientation == 'vertical') {
             return {
-                translate_x:0,
-                translate_y:new_position*-1
+                translate_x: 0,
+                translate_y: new_position * -1
             };
         }
         else {
             return {
-                translate_x:new_position*-1,
-                translate_y:0
+                translate_x: new_position * -1,
+                translate_y: 0
             };
         }
 
     };
 
-    _private.prototype.setCarouselPosition = function(type,translate_x,translate_y){
+    _private.prototype.setCarouselPosition = function (type, translate_x, translate_y) {
         var self = this.self;
         var $wrapper = type == 'thumb' ? self.elements.$thumbs_wrapper : self.elements.$wrapper;
         if (_static.has3dSupport) {
-            $wrapper.css('transform', 'translate3d('+(translate_x)+'px,' + (translate_y) + 'px,0px)');
+            $wrapper.css('transform', 'translate3d(' + (translate_x) + 'px,' + (translate_y) + 'px,0px)');
         }
         else {
-            $wrapper.css('transform', 'translate('+(translate_x)+'px,' + (translate_y) + 'px)');
+            $wrapper.css('transform', 'translate(' + (translate_x) + 'px,' + (translate_y) + 'px)');
         }
     };
 
-    _private.prototype.getRealMargin = function(margin,container_width) {
+    _private.prototype.getRealMargin = function (margin, container_width) {
         var self = this.self;
-        if (_static.isString(margin,true)) {
+        if (_static.isString(margin, true)) {
             var last_char = margin.slice(-1);
             if (last_char == '%') {
-                var percent = parseInt(margin,10);
+                var percent = parseInt(margin, 10);
                 if (_static.isNumber(percent)) {
-                    margin = container_width*(percent/100);
+                    margin = container_width * (percent / 100);
                 }
             }
         }
         return margin;
     };
 
-    _private.prototype.setCarouselItemsActive = function (type,new_index) {
+    _private.prototype.setCarouselItemsActive = function (type, new_index) {
         var self = this.self;
         new_index = _static.param(new_index, false);
 
@@ -323,13 +323,15 @@
             max_index = new_index + (shown - 1);
 
         if (_static.elementExists($items)) {
+            $items.removeClass('active part-active first-active last-active');
+
             if (align == 'bottom' || align == 'right') {
                 min_index = new_index - (shown - 1);
                 max_index = new_index;
             }
             else if (align == 'center') {
-                min_index = new_index - ((shown - 1)/2);
-                max_index = new_index + ((shown - 1)/2);
+                min_index = new_index - ((shown - 1) / 2);
+                max_index = new_index + ((shown - 1) / 2);
             }
 
             if (min_index < 0) {
@@ -415,6 +417,7 @@
             $items = type == 'thumb' ? self.elements.$thumbs : self.elements.$slides,
             shown = type == 'thumb' ? self.settings.thumbs_shown : self.settings.shown,
             continuous = type == 'thumb' ? self.settings.thumbs_continuous : self.settings.continuous,
+            min_clones = type == 'thumb' ? self.settings.thumbs_min_clones : self.settings.min_clones,
             i;
 
         if (_static.elementExists($clones_before)) {
@@ -427,12 +430,15 @@
         if (continuous && _static.elementExists($items) && $items.length > shown) {
             $clones_before = $([]);
             $clones_after = $([]);
-            for (i = $items.length - 1; i >= $items.length - shown; i--) {
+
+            if (shown > min_clones) min_clones = shown;
+
+            for (i = $items.length - 1; i >= $items.length - (min_clones+1); i--) {
                 $new_clone = $items.eq(i).clone();
                 $new_clone.addClass('cable-slider-clone').prependTo($wrapper);
                 $clones_before = $clones_before.add($new_clone);
             }
-            for (i = 0; i <= shown - 1; i++) {
+            for (i = 0; i <= min_clones; i++) {
                 $new_clone = $items.eq(i).clone();
                 $new_clone.addClass('cable-slider-clone').appendTo($wrapper);
                 $clones_after = $clones_after.add($new_clone);
@@ -453,27 +459,27 @@
         }
     };
 
-    _private.prototype.getIndexRange = function() {
+    _private.prototype.getIndexRange = function () {
         var self = this.self;
         var min_index = 0,
-            max_index = self.elements.$slides.length-self.settings.shown;
+            max_index = self.elements.$slides.length - self.settings.shown;
 
         if (self.settings.align == 'bottom' || self.settings.align == 'right') {
-            min_index = self.settings.shown-1;
-            max_index = self.elements.$slides.length-1;
+            min_index = self.settings.shown - 1;
+            max_index = self.elements.$slides.length - 1;
         }
         else if (self.settings.align == 'center') {
-            min_index = Math.ceil((self.settings.shown-1)/2);
-            max_index = self.elements.$slides.length-Math.ceil((self.settings.shown)/2);
+            min_index = Math.ceil((self.settings.shown - 1) / 2);
+            max_index = self.elements.$slides.length - Math.ceil((self.settings.shown) / 2);
         }
 
         return {
-            min:min_index,
-            max:max_index
+            min: min_index,
+            max: max_index
         }
     };
 
-    _private.prototype.attachDragEvents = function() {
+    _private.prototype.attachDragEvents = function () {
         var self = this.self;
         var disable_mouse = false,
             capture_space = 10,
@@ -486,28 +492,28 @@
             wrapper_y = 0,
             new_position = 0,
             old_position = 0,
-            start = function(new_start_x,new_start_y,event,type){
+            start = function (new_start_x, new_start_y, event, type) {
                 start_x = new_start_x;
                 start_y = new_start_y;
                 move_x = start_x;
                 move_y = start_y;
-                wrapper_x = _static.getTranslatePosition(self.elements.$wrapper.get(0),'x'),
-                wrapper_y = _static.getTranslatePosition(self.elements.$wrapper.get(0),'y'),
+                wrapper_x = _static.getTranslatePosition(self.elements.$wrapper.get(0), 'x');
+                wrapper_y = _static.getTranslatePosition(self.elements.$wrapper.get(0), 'y');
                 captured = false;
-                self.elements.$wrapper.css('transition','all 0s ease');
-                self._private.setCarouselPosition('slide',wrapper_x,wrapper_y);
+                self.elements.$wrapper.css('transition', 'all 0s ease');
+                self._private.setCarouselPosition('slide', wrapper_x, wrapper_y);
 
-                move(new_start_x,new_start_y,false,type);
+                move(new_start_x, new_start_y, false, type);
             },
-            move = function(new_move_x,new_move_y,event,type) {
+            move = function (new_move_x, new_move_y, event, type) {
                 move_x = new_move_x;
                 move_y = new_move_y;
 
                 var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-                    furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation)*-1,
-                    nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation)*-1,
-                    movement_x = Math.abs(move_x-start_x)-capture_space,
-                    movement_y = Math.abs(move_y-start_y)-capture_space;
+                    furthest_position = self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation) * -1,
+                    nearest_position = self._private.getNearestPosition(self.elements.$slides.first(), self.elements.$wrapper, self.settings.orientation) * -1,
+                    movement_x = Math.abs(move_x - start_x) - capture_space,
+                    movement_y = Math.abs(move_y - start_y) - capture_space;
 
                 if (type == 'touch') {
                     if ((movement_x > 0 || movement_y > 0) && ((movement_y >= movement_x && self.settings.orientation == 'vertical') || movement_x >= movement_y)) {
@@ -531,79 +537,62 @@
                         old_position = wrapper_y;
                         if (old_position < furthest_position) old_position = furthest_position;
                         if (old_position > nearest_position) old_position = nearest_position;
-                        new_position = wrapper_y+(move_y-start_y);
-                        if (new_position < furthest_position) new_position = furthest_position+((new_position-furthest_position)/3);
-                        if (new_position > nearest_position) new_position = nearest_position+((new_position-nearest_position)/3);
-                        self._private.setCarouselPosition('slide',0,new_position);
+                        new_position = wrapper_y + (move_y - start_y);
+                        if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
+                        if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                        self._private.setCarouselPosition('slide', 0, new_position);
                     }
                     else {
                         old_position = wrapper_x;
                         if (old_position < furthest_position) old_position = furthest_position;
                         if (old_position > nearest_position) old_position = nearest_position;
-                        new_position = wrapper_x+(move_x-start_x);
-                        if (new_position < furthest_position) new_position = furthest_position+((new_position-furthest_position)/3);
-                        if (new_position > nearest_position) new_position = nearest_position+((new_position-nearest_position)/3);
-                        self._private.setCarouselPosition('slide',new_position,0);
+                        new_position = wrapper_x + (move_x - start_x);
+                        if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
+                        if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                        self._private.setCarouselPosition('slide', new_position, 0);
                     }
                 }
 
                 return false;
             },
-            end = function(event,type) {
-                _static.$document.off('touchmove.'+_static._event_namespace);
-                _static.$document.off('touchend.'+_static._event_namespace);
-                _static.$document.off('mousemove.'+_static._event_namespace);
-                _static.$document.off('mouseup.'+_static._event_namespace);
+            end = function (event, type) {
+                _static.$document.off('touchmove.' + _static._event_namespace);
+                _static.$document.off('touchend.' + _static._event_namespace);
+                _static.$document.off('mousemove.' + _static._event_namespace);
+                _static.$document.off('mouseup.' + _static._event_namespace);
                 disable_mouse = false;
 
                 var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
                     $check_item,
                     item_position,
-                    j=-1,
-                    d=0,
-                    j_difference=-1,
+                    j = -1,
+                    d = 0,
+                    j_difference = -1,
                     n_position,
                     n_difference;
-                for (var i=0; i<self.elements.$slides.length; i++) {
+                for (var i = 0; i < self.elements.$slides.length; i++) {
                     $check_item = self.elements.$slides.eq(i);
-                    item_position = self._private.getItemPosition($check_item,self.elements.$wrapper,container_size,self.settings.orientation,self.settings.align);
+                    item_position = self._private.getItemPosition($check_item, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
 
-                    n_position = new_position*-1;
+                    n_position = new_position * -1;
 
-                    if (self.settings.orientation == 'vertical') {
-                        if (self.settings.align == 'bottom') {
-                            //n_position += container_size - $check_item.get(0).getBoundingClientRect().height;
-                        }
-                        else if (self.settings.align == 'center') {
-                            //n_position += (container_size - $check_item.get(0).getBoundingClientRect().height) / 2;
-                        }
-                    }
-                    else {
-                        if (self.settings.align == 'right') {
-                            //n_position += container_size - $check_item.get(0).getBoundingClientRect().width;
-                        }
-                        else if (self.settings.align == 'center') {
-                            //n_position += (container_size - $check_item.get(0).getBoundingClientRect().width) / 2;
-                        }
-                    }
-
-                    n_difference = Math.abs(item_position-n_position);
+                    n_difference = Math.abs(item_position - n_position);
                     if (j_difference < 0 || n_difference < j_difference) {
                         j_difference = n_difference;
                         j = i;
                     }
                 }
 
-                if (j>=0) {
+                if (j >= 0) {
                     if (j == self.properties.current_index) {
                         if (j_difference > capture_space) {
                             if (old_position > new_position) {
                                 j++;
-                                d=1;
+                                d = 1;
                             }
                             else if (old_position < new_position) {
                                 j--;
-                                d=-1;
+                                d = -1;
                             }
                         }
                         else {
@@ -612,38 +601,38 @@
                     }
 
                     var index_range = self._private.getIndexRange();
-                    if (j<index_range.min) j=index_range.min;
-                    else if (j>index_range.max) j=index_range.max;
+                    if (j < index_range.min) j = index_range.min;
+                    else if (j > index_range.max) j = index_range.max;
 
-                    self.goTo(j,d);
+                    self.goTo(j, d);
                 }
             };
 
         if (_static.elementExists(self.elements.$container)) {
-            self.elements.$container.off('touchstart.'+_static._event_namespace).on('touchstart.'+_static._event_namespace, function(e) {
+            self.elements.$container.off('touchstart.' + _static._event_namespace).on('touchstart.' + _static._event_namespace, function (e) {
                 disable_mouse = true;
-                start(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
-                _static.$document.off('touchmove.'+_static._event_namespace).on('touchmove.'+_static._event_namespace, function(e) {
-                    return move(e.originalEvent.touches[0].pageX,e.originalEvent.touches[0].pageY,e,'touch');
+                start(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY, e, 'touch');
+                _static.$document.off('touchmove.' + _static._event_namespace).on('touchmove.' + _static._event_namespace, function (e) {
+                    return move(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY, e, 'touch');
                 });
-                _static.$document.off('touchend.'+_static._event_namespace).on('touchend.'+_static._event_namespace, function(e) {
-                    return end(e,'touch');
+                _static.$document.off('touchend.' + _static._event_namespace).on('touchend.' + _static._event_namespace, function (e) {
+                    return end(e, 'touch');
                 });
             });
 
-            self.elements.$container.off('mousedown.'+_static._event_namespace).on('mousedown.'+_static._event_namespace, function(e) {
+            self.elements.$container.off('mousedown.' + _static._event_namespace).on('mousedown.' + _static._event_namespace, function (e) {
                 if (!disable_mouse && e.which == 1) {
-                    start(e.pageX,e.pageY,e,'mouse');
-                    _static.$document.off('mousemove.'+_static._event_namespace).on('mousemove.'+_static._event_namespace,function(e){
-                        return move(e.pageX,e.pageY,e,'mouse');
+                    start(e.pageX, e.pageY, e, 'mouse');
+                    _static.$document.off('mousemove.' + _static._event_namespace).on('mousemove.' + _static._event_namespace, function (e) {
+                        return move(e.pageX, e.pageY, e, 'mouse');
                     });
-                    _static.$document.off('mouseup.'+_static._event_namespace).on('mouseup.'+_static._event_namespace, function(e){
-                        return end(e,'mouse');
+                    _static.$document.off('mouseup.' + _static._event_namespace).on('mouseup.' + _static._event_namespace, function (e) {
+                        return end(e, 'mouse');
                     });
                 }
             });
 
-            self.elements.$container.off('click.'+_static._event_namespace).on('click.'+_static._event_namespace, function(e) {
+            self.elements.$container.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 if (captured) {
                     e.stopImmediatePropagation();
                     e.preventDefault();
@@ -653,13 +642,13 @@
         }
     };
 
-    _private.prototype.attachEvents = function() {
+    _private.prototype.attachEvents = function () {
         var self = this.self;
 
-        var pauseAutoPlay = function(){
+        var pauseAutoPlay = function () {
             self.pause();
         };
-        var resumeAutoPlay = function(){
+        var resumeAutoPlay = function () {
             if (self.settings.auto_play) {
                 self.play();
             }
@@ -673,8 +662,8 @@
             });
             if (self.settings.hover_pause) {
                 self.elements.$next
-                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
-                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace, pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace, resumeAutoPlay);
             }
         }
         if (_static.elementExists(self.elements.$prev)) {
@@ -684,16 +673,16 @@
             });
             if (self.settings.hover_pause) {
                 self.elements.$prev
-                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
-                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace, pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace, resumeAutoPlay);
             }
         }
 
         if (_static.elementExists(self.elements.$container)) {
             if (self.settings.hover_pause) {
                 self.elements.$container
-                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
-                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace, pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace, resumeAutoPlay);
             }
         }
 
@@ -704,8 +693,8 @@
         if (_static.elementExists(self.elements.$thumbs_container)) {
             if (self.settings.hover_pause) {
                 self.elements.$thumbs_container
-                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace,pauseAutoPlay)
-                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace,resumeAutoPlay);
+                    .off('mouseenter.' + _static._event_namespace).on('mouseenter.' + _static._event_namespace, pauseAutoPlay)
+                    .off('mouseleave.' + _static._event_namespace).on('mouseleave.' + _static._event_namespace, resumeAutoPlay);
             }
         }
 
@@ -814,8 +803,8 @@
 
             if ($slide && new_index >= 0) {
                 var index_range = self._private.getIndexRange();
-                if (new_index<index_range.min) new_index=index_range.min;
-                else if (new_index>index_range.max) new_index=index_range.max;
+                if (new_index < index_range.min) new_index = index_range.min;
+                else if (new_index > index_range.max) new_index = index_range.max;
 
                 self.properties.new_index = new_index;
 
@@ -832,17 +821,16 @@
         }
     };
 
-    _private.prototype.setItemsActivity = function(type,$items,new_index,orientation) {
+    _private.prototype.setItemsActivity = function (type, $items, new_index, orientation) {
         var self = this.self;
 
         var data = {
-            new_container_height:0
+            new_container_height: 0
         };
 
         if (_static.elementExists($items)) {
             // activity start
 
-            $items.removeClass('active part-active first-active last-active');
             if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
                 self.elements.$thumbs.removeClass('focus');
             }
@@ -885,7 +873,7 @@
         return data;
     };
 
-    _private.prototype.prepareAdjust = function(type,animate) {
+    _private.prototype.prepareAdjust = function (type, animate) {
         var self = this.self;
 
         animate = _static.param(animate, false);
@@ -911,13 +899,13 @@
             self._private.buildClones(type);
 
             data = {
-                current_index:self.properties.current_index,
-                new_index:self.properties.new_index,
-                container_width:$container.get(0).getBoundingClientRect().width,
-                new_container_height:0
+                current_index: self.properties.current_index,
+                new_index: self.properties.new_index,
+                container_width: $container.get(0).getBoundingClientRect().width,
+                new_container_height: 0
             };
 
-            margin = self._private.getRealMargin(margin,data.container_width);
+            margin = self._private.getRealMargin(margin, data.container_width);
 
             var new_wrapper_width = 0,
                 new_wrapper_height = 0,
@@ -928,10 +916,10 @@
                     'width': data.container_width,
                     'height': 'auto',
                     'float': 'none',
-                    'transition':'all 0s ease'
+                    'transition': 'all 0s ease'
                 };
                 if (_static.isNumber(margin)) {
-                    slide_css['margin-bottom'] = margin+'px';
+                    slide_css['margin-bottom'] = margin + 'px';
                 }
             }
             else {
@@ -939,10 +927,10 @@
                     'width': ((data.container_width - (margin * (shown - 1))) / shown) + 'px',
                     'height': 'auto',
                     'float': 'left',
-                    'transition':'all 0s ease'
+                    'transition': 'all 0s ease'
                 };
                 if (_static.isNumber(margin)) {
-                    slide_css['margin-right'] = margin+'px';
+                    slide_css['margin-right'] = margin + 'px';
                 }
             }
 
@@ -971,11 +959,11 @@
             // layout end
 
             var activity_data = self._private.setItemsActivity(type, $items, data.current_index, orientation);
-            $container.css('height',activity_data.new_container_height+'px');
+            $container.css('height', activity_data.new_container_height + 'px');
 
             if (!animate) {
                 var new_carousel_position_data = self._private.getNewCarouselPosition(type, data.current_index, data.container_width, activity_data.new_container_height);
-                self._private.setCarouselPosition(type,new_carousel_position_data.translate_x,new_carousel_position_data.translate_y);
+                self._private.setCarouselPosition(type, new_carousel_position_data.translate_x, new_carousel_position_data.translate_y);
             }
 
             activity_data = self._private.setItemsActivity(type, $items, data.new_index, orientation);
@@ -1021,6 +1009,7 @@
         margin: false,
         //loop: false,
         continuous: false,
+        min_clones: 0,
         drag: true,
         thumbs_container: false,
         thumbs_next: false,
@@ -1031,6 +1020,7 @@
         thumbs_margin: false,
         //thumbs_loop: false,
         thumbs_continuous: false,
+        thumbs_min_clones: 0,
         auto_thumbs: false, // will remove existing html inside thumbs container if it exists
         //bullets_container: false,
         auto_play: false, // set a number for a time period. false or 0 will not auto play.
@@ -1053,7 +1043,7 @@
         self._private.prepareAdjust('thumb');
         self.adjust(false, true);
 
-        self.goTo(0,0);
+        self.goTo(0, 0);
 
         if (self.settings.auto_play) {
             self.play();
@@ -1111,8 +1101,8 @@
         if (_static.elementExists(self.elements.$slides)) {
             self.trigger('adjust');
 
-            var slide_adjust_data = self._private.prepareAdjust('slide',animate),
-                thumb_adjust_data = self._private.prepareAdjust('thumb',animate),
+            var slide_adjust_data = self._private.prepareAdjust('slide', animate),
+                thumb_adjust_data = self._private.prepareAdjust('thumb', animate),
                 new_slide_carousel_position_data = self._private.getNewCarouselPosition('slide', slide_adjust_data.new_index, slide_adjust_data.container_width, slide_adjust_data.new_container_height),
                 new_thumb_carousel_position_data = self._private.getNewCarouselPosition('thumb', thumb_adjust_data.new_index, thumb_adjust_data.container_width, thumb_adjust_data.new_container_height),
                 transition_seconds = 0,
@@ -1121,23 +1111,23 @@
                 new_translate_position = 0;
 
             if (slide_adjust_data) {
-                self.elements.$container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
+                self.elements.$container.css({'transition': 'height 0.5s ' + self.properties.container_height_easing});
                 if (animate) {
-                    difference = Math.abs(slide_adjust_data.new_index-slide_adjust_data.current_index);
-                    transition_seconds = Math.round((difference/5)*100)/100;
+                    difference = Math.abs(slide_adjust_data.new_index - slide_adjust_data.current_index);
+                    transition_seconds = Math.round((difference / 5) * 100) / 100;
                     if (transition_seconds > 1) transition_seconds = 1;
-                    else if (transition_seconds < 0.3) transition_seconds = 0.3;
-                    self.elements.$wrapper.css({'transition': 'transform '+transition_seconds+'s '+self.properties.wrapper_transform_easing});
+                    else if (transition_seconds < 0.4) transition_seconds = 0.4;
+                    self.elements.$wrapper.css({'transition': 'transform ' + transition_seconds + 's ' + self.properties.wrapper_transform_easing});
                 }
 
                 if (thumb_adjust_data) {
-                    self.elements.$thumbs_container.css({'transition':'height 0.5s '+self.properties.container_height_easing});
+                    self.elements.$thumbs_container.css({'transition': 'height 0.5s ' + self.properties.container_height_easing});
                     if (animate) {
-                        difference = Math.abs(thumb_adjust_data.new_index-thumb_adjust_data.current_index);
-                        transition_seconds = Math.round((difference/5)*100)/100;
+                        difference = Math.abs(thumb_adjust_data.new_index - thumb_adjust_data.current_index);
+                        transition_seconds = Math.round((difference / 5) * 100) / 100;
                         if (transition_seconds > 1) transition_seconds = 1;
                         else if (transition_seconds < 0.4) transition_seconds = 0.4;
-                        self.elements.$thumbs_wrapper.css({'transition': 'transform '+transition_seconds+'s '+self.properties.wrapper_transform_easing});
+                        self.elements.$thumbs_wrapper.css({'transition': 'transform ' + transition_seconds + 's ' + self.properties.wrapper_transform_easing});
                     }
                 }
 
@@ -1145,17 +1135,17 @@
 
                 setTimeout(function () {
                     // animate container height
-                    self.elements.$container.css('height',slide_adjust_data.new_container_height+'px');
+                    self.elements.$container.css('height', slide_adjust_data.new_container_height + 'px');
 
                     // animate slides
-                    self._private.setCarouselPosition('slide',new_slide_carousel_position_data.translate_x,new_slide_carousel_position_data.translate_y);
+                    self._private.setCarouselPosition('slide', new_slide_carousel_position_data.translate_x, new_slide_carousel_position_data.translate_y);
 
                     if (thumb_adjust_data) {
                         //animate thumb container height
-                        self.elements.$thumbs_container.css('height',thumb_adjust_data.new_container_height+'px');
+                        self.elements.$thumbs_container.css('height', thumb_adjust_data.new_container_height + 'px');
 
                         // animate thumbs
-                        self._private.setCarouselPosition('thumb',new_thumb_carousel_position_data.translate_x,new_thumb_carousel_position_data.translate_y);
+                        self._private.setCarouselPosition('thumb', new_thumb_carousel_position_data.translate_x, new_thumb_carousel_position_data.translate_y);
 
                         self.trigger('after_adjust');
                     }

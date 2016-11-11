@@ -22,12 +22,16 @@
 
         .custom-cable-slider {
             position:relative;
-            max-width:1000px;
+            max-width:500px;
             margin:0 auto;
         }
 
         .custom-cable-slider-container {
             position:relative;
+        }
+
+        .cable-slider-container {
+            overflow:visible;
         }
 
         .custom-cable-slider-slides {
@@ -122,6 +126,7 @@
                 orientation:'horizontal',
                 align:'center',
                 shown:1,
+                continuous:true,
                 thumbs_container:'.custom-cable-slider-thumbs',
                 thumbs_shown:3,
                 thumbs_orientation:'vertical',
