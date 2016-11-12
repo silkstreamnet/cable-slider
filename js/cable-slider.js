@@ -455,7 +455,7 @@
 
     _private.prototype.getIndexRange = function () {
         var self = this.self;
-        var extra_clone_count = ((self.elements.$slides.length-((self.settings.shown)*2))-self.properties.slides_length)/2,
+        var extra_clone_count = (self.elements.$slides.length > self.properties.slides_length) ? ((self.elements.$slides.length-((self.settings.shown)*2))-self.properties.slides_length)/2 : 0,
             min_index = extra_clone_count,
             max_index = (self.elements.$slides.length-extra_clone_count) - self.settings.shown;
 
