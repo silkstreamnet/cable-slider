@@ -412,6 +412,7 @@
             min_clones = type == 'thumb' ? self.settings.thumbs_min_clones : self.settings.min_clones,
             i,
             clones_length,
+            target_clones_length,
             limit;
 
         // remove existing clones
@@ -424,42 +425,44 @@
         if (continuous && _static.elementExists($items)) {
 
             if (shown+1 > min_clones) min_clones = shown+1;
-            if ($items.length < shown) {
-                //fill
-                clones_length = 0;
-                limit = (min_clones > $items.length) ? $items.length : min_clones;
-                while (clones_length < min_clones) {
-                    for (i = 0; i < limit; i++) {
-                        $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
-                        clones_length++;
-                    }
-                }
-
-                if (type != 'thumb') {
-                    self.properties.slides_length = shown;
-                }
-            }
 
             //todo should clones copy events?
 
             // append
+            i = 0;
             clones_length = 0;
-            limit = (min_clones > $items.length) ? $items.length : min_clones;
-            while (clones_length < min_clones) {
-                for (i = 0; i < limit; i++) {
-                    $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
-                    clones_length++;
+            target_clones_length = min_clones;
+            if ($items.length < shown) {
+                //i = $items.length-(shown - $items.length);
+                target_clones_length += (shown - $items.length)*2;
+                if (type != 'thumb') {
+                    self.properties.slides_length = shown;
                 }
+            }
+            console.log("1",target_clones_length);
+            limit = (target_clones_length > $items.length) ? $items.length-1 : target_clones_length-1;
+            while (clones_length < target_clones_length) {
+                $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                if (i >= limit) i = 0;
+                else i++;
+                clones_length++;
             }
 
             // prepend
+            i = $items.length - 1;
             clones_length = 0;
-            limit = (min_clones > $items.length) ? 0 : $items.length - (min_clones);
-            while (clones_length < min_clones) {
-                for (i = $items.length - 1; i >= limit; i--) {
-                    $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
-                    clones_length++;
-                }
+            target_clones_length = min_clones;
+            if ($items.length < shown) {
+                //i = (shown - $items.length)-1;
+                target_clones_length += (shown - $items.length);
+            }
+            console.log("2",target_clones_length);
+            limit = (target_clones_length > $items.length) ? 0 : $items.length - target_clones_length;
+            while (clones_length < target_clones_length) {
+                $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
+                if (i <= limit) i = $items.length - 1;
+                else i--;
+                clones_length++;
             }
 
             // reset
@@ -470,7 +473,7 @@
 
     _private.prototype.getIndexRange = function () {
         var self = this.self;
-        var extra_clone_count = (self.elements.$slides.length > self.properties.slides_length) ? ((self.elements.$slides.length-((self.settings.shown)*2))-self.properties.slides_length)/2 : 0,
+        var extra_clone_count = (self.elements.$slides.length > self.properties.slides_length) ? Math.ceil(((self.elements.$slides.length-((self.settings.shown)*2))-self.properties.slides_length)/2) : 0,
             min_index = extra_clone_count,
             max_index = (self.elements.$slides.length-extra_clone_count) - self.settings.shown;
 
@@ -495,6 +498,11 @@
                 max_index -= Math.ceil((self.settings.shown - 1) / 2);
             }
         }
+
+        console.log(min_index);
+        console.log(max_index);
+        console.log(self.elements.$slides.eq(min_index));
+        console.log(self.elements.$slides.eq(max_index));
 
         return {
             min: min_index,
@@ -1080,7 +1088,7 @@
         self._private.prepareAdjust('thumb');
         self.adjust(false, true);
 
-        self.goTo((self.settings.continuous ? (self.elements.$slides.length-self.properties.slides_length)/2 : 0), 0);
+        self.goTo((self.settings.continuous ? Math.floor((self.elements.$slides.length-self.properties.slides_length)/2) : 0), 0);
 
         self.adjust(false,true);
 
