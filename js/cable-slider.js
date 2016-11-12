@@ -424,18 +424,23 @@
         if (continuous && _static.elementExists($items)) {
 
             if (shown+1 > min_clones) min_clones = shown+1;
+            if ($items.length < shown) {
+                //fill
+                clones_length = 0;
+                limit = (min_clones > $items.length) ? $items.length : min_clones;
+                while (clones_length < min_clones) {
+                    for (i = 0; i < limit; i++) {
+                        $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                        clones_length++;
+                    }
+                }
 
-            //todo should clones copy events?
-
-            // prepend
-            clones_length = 0;
-            limit = (min_clones > $items.length) ? 0 : $items.length - (min_clones);
-            while (clones_length < min_clones) {
-                for (i = $items.length - 1; i >= limit; i--) {
-                    $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
-                    clones_length++;
+                if (type != 'thumb') {
+                    self.properties.slides_length = shown;
                 }
             }
+
+            //todo should clones copy events?
 
             // append
             clones_length = 0;
@@ -443,6 +448,16 @@
             while (clones_length < min_clones) {
                 for (i = 0; i < limit; i++) {
                     $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                    clones_length++;
+                }
+            }
+
+            // prepend
+            clones_length = 0;
+            limit = (min_clones > $items.length) ? 0 : $items.length - (min_clones);
+            while (clones_length < min_clones) {
+                for (i = $items.length - 1; i >= limit; i--) {
+                    $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
                     clones_length++;
                 }
             }
