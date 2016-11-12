@@ -32,6 +32,7 @@
 
         .cable-slider-container {
             overflow:visible;
+            background:darkred;
         }
 
         .custom-cable-slider-slides {
@@ -135,9 +136,10 @@
                 auto_thumbs:false,
                 //auto_play:2000,
                 hover_pause:true,
+                min_clones:10,
                 responsive:{ // need a function to get responsive overrides for settings
                     1500:{ // if > 768 then apply these settings
-                        shown:3,
+                        shown:1,
                         thumbs_shown:5
                     },
                     800:{
