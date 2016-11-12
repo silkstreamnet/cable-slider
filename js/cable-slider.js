@@ -711,7 +711,7 @@
             }
         }
 
-        if (self.settings.drag) {
+        if (self.settings.draggable) {
             self._private.attachDragEvents();
         }
 
@@ -1032,7 +1032,7 @@
         //loop: false,
         continuous: false,
         min_clones: 0,
-        drag: true,
+        draggable: true,
         thumbs_container: false,
         thumbs_next: false,
         thumbs_prev: false,
