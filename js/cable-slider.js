@@ -428,18 +428,30 @@
 
             //todo should clones copy events?
 
+            // fill
+            if ($items.length < shown) {
+                i = 0;
+                clones_length = 0;
+                target_clones_length = (shown - $items.length);
+
+                while (clones_length < target_clones_length) {
+                    $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                    i++;
+                    clones_length++;
+                }
+
+                if (type != 'thumb') {
+                    self.properties.slides_length = shown;
+                }
+
+                if (type == 'thumb') $items = self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
+                else $items = self.elements.$slides = $wrapper.find('>.cable-slider-slide');
+            }
+
             // append
             i = 0;
             clones_length = 0;
             target_clones_length = min_clones;
-            if ($items.length < shown) {
-                //i = $items.length-(shown - $items.length);
-                target_clones_length += (shown - $items.length)*2;
-                if (type != 'thumb') {
-                    self.properties.slides_length = shown;
-                }
-            }
-            console.log("1",target_clones_length);
             limit = (target_clones_length > $items.length) ? $items.length-1 : target_clones_length-1;
             while (clones_length < target_clones_length) {
                 $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
@@ -452,11 +464,6 @@
             i = $items.length - 1;
             clones_length = 0;
             target_clones_length = min_clones;
-            if ($items.length < shown) {
-                //i = (shown - $items.length)-1;
-                target_clones_length += (shown - $items.length);
-            }
-            console.log("2",target_clones_length);
             limit = (target_clones_length > $items.length) ? 0 : $items.length - target_clones_length;
             while (clones_length < target_clones_length) {
                 $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
