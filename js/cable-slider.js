@@ -519,11 +519,6 @@
             }
         }
 
-        console.log(min_index);
-        console.log(max_index);
-        console.log(self.elements.$slides.eq(min_index));
-        console.log(self.elements.$slides.eq(max_index));
-
         return {
             min: min_index,
             max: max_index
@@ -1095,7 +1090,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.6';
+    CableSlider.prototype.version = '0.1.7';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
