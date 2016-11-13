@@ -481,28 +481,41 @@
     _private.prototype.getIndexRange = function () {
         var self = this.self;
         var extra_clone_count = (self.elements.$slides.length > self.properties.slides_length) ? Math.ceil(((self.elements.$slides.length-((self.settings.shown)*2))-self.properties.slides_length)/2) : 0,
-            min_index = extra_clone_count,
+            min_index = 0,
+            max_index = 0;
+
+        if (self.elements.$slides.length > self.settings.shown) {
+            min_index = extra_clone_count;
             max_index = (self.elements.$slides.length-extra_clone_count) - self.settings.shown;
 
-        if (self.settings.continuous) {
-            max_index -= self.settings.shown;
-        }
-
-        if (self.settings.align == 'bottom' || self.settings.align == 'right') {
-            min_index = extra_clone_count+(self.settings.shown - 1);
-            max_index = (self.elements.$slides.length-extra_clone_count) - 1;
-
             if (self.settings.continuous) {
-                min_index += self.settings.shown;
+                max_index -= self.settings.shown;
+            }
+
+            if (self.settings.align == 'bottom' || self.settings.align == 'right') {
+                min_index = extra_clone_count+(self.settings.shown - 1);
+                max_index = (self.elements.$slides.length-extra_clone_count) - 1;
+
+                if (self.settings.continuous) {
+                    min_index += self.settings.shown;
+                }
+            }
+            else if (self.settings.align == 'center') {
+                min_index = extra_clone_count+(Math.ceil((self.settings.shown - 1) / 2));
+                max_index = (self.elements.$slides.length-extra_clone_count) - Math.ceil((self.settings.shown) / 2);
+
+                if (self.settings.continuous) {
+                    min_index += Math.ceil((self.settings.shown + 1) / 2);
+                    max_index -= Math.ceil((self.settings.shown - 1) / 2);
+                }
             }
         }
-        else if (self.settings.align == 'center') {
-            min_index = extra_clone_count+(Math.ceil((self.settings.shown - 1) / 2));
-            max_index = (self.elements.$slides.length-extra_clone_count) - Math.ceil((self.settings.shown) / 2);
-
-            if (self.settings.continuous) {
-                min_index += Math.ceil((self.settings.shown + 1) / 2);
-                max_index -= Math.ceil((self.settings.shown - 1) / 2);
+        else {
+            if (self.settings.align == 'bottom' || self.settings.align == 'right') {
+                min_index = max_index = self.elements.$slides.length-1;
+            }
+            else if (self.settings.align == 'center') {
+                min_index = max_index = Math.floor((self.elements.$slides.length - 1) / 2);
             }
         }
 
@@ -547,11 +560,7 @@
                 move_x = new_move_x;
                 move_y = new_move_y;
 
-                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-                    index_range = self._private.getIndexRange(),
-                    furthest_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.max), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1,
-                    nearest_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.min), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1,
-                    movement_x = Math.abs(move_x - start_x) - capture_space,
+                var movement_x = Math.abs(move_x - start_x) - capture_space,
                     movement_y = Math.abs(move_y - start_y) - capture_space;
 
                 if (type == 'touch') {
@@ -572,11 +581,47 @@
                 }
 
                 if (captured) {
+                    var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                        index_range = self._private.getIndexRange(),
+                        furthest_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.max), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1,
+                        nearest_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.min), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1;
+
+                    if (self.elements.$slides.length < self.settings.shown) {
+                        if (self.settings.align == 'bottom' || self.settings.align == 'right') {
+                            furthest_position = nearest_position = (self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation)) * -1;
+                        }
+                        else if (self.settings.align == 'center') {
+                            furthest_position = nearest_position  = (self._private.getFurthestPosition(self.elements.$slides.last(), self.elements.$wrapper, container_size, self.settings.orientation) / 2) * -1;
+                        }
+                    }
+
                     self.elements.$slides.removeClass('active part-active first-active last-active');
 
                     if (self.settings.orientation == 'vertical') {
                         old_position = wrapper_y;
                         new_position = wrapper_y + (move_y - start_y);
+
+                        if (self.settings.continuous) {
+                            if (new_position < furthest_position) {
+                                start_y = move_y;
+                                wrapper_y = nearest_position;
+                                old_position = wrapper_y;
+                                new_position = wrapper_y;
+                                self.properties.current_index -= self.properties.slides_length;
+                            }
+                            else if (new_position > nearest_position) {
+                                start_y = move_y;
+                                wrapper_y = furthest_position;
+                                old_position = wrapper_y;
+                                new_position = wrapper_y;
+                                self.properties.current_index += self.properties.slides_length;
+                            }
+                        }
+                        else {
+                            if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
+                            else if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                        }
+
                         if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
                         if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
                         self._private.setCarouselPosition('slide', 0, new_position);
@@ -592,7 +637,7 @@
                                 new_position = wrapper_x;
                                 self.properties.current_index -= self.properties.slides_length;
                             }
-                            if (new_position > nearest_position) {
+                            else if (new_position > nearest_position) {
                                 start_x = move_x;
                                 wrapper_x = furthest_position;
                                 old_position = wrapper_x;
@@ -602,7 +647,7 @@
                         }
                         else {
                             if (new_position < furthest_position) new_position = furthest_position + ((new_position - furthest_position) / 3);
-                            if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
+                            else if (new_position > nearest_position) new_position = nearest_position + ((new_position - nearest_position) / 3);
                         }
                         self._private.setCarouselPosition('slide', new_position, 0);
                     }
