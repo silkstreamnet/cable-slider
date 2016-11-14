@@ -1332,7 +1332,24 @@
         new_index = self._private.getValidSlideNumber(new_index);
 
         var index_range = self._private.getIndexRange();
-        if (new_index > index_range.max) new_index = index_range.min;
+        if (new_index > index_range.max) {
+            if (self.elements.$slides.length > self.properties.slides_length && self.settings.continuous) {
+                self.elements.$wrapper.css({'transition': 'all 0s ease'});
+                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                    new_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.min), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1;
+                if (self.settings.orientation == 'vertical') {
+                    self._private.setCarouselPosition('slide',0,new_position);
+                }
+                else {
+                    self._private.setCarouselPosition('slide',new_position,0);
+                }
+                self.properties.current_index = index_range.min;
+                new_index = index_range.min+1;
+            }
+            else {
+                new_index = index_range.min;
+            }
+        }
 
         self.goTo(new_index, 1);
     };
@@ -1343,7 +1360,24 @@
         new_index = self._private.getValidSlideNumber(new_index);
 
         var index_range = self._private.getIndexRange();
-        if (new_index < index_range.min) new_index = index_range.max;
+        if (new_index < index_range.min) {
+            if (self.elements.$slides.length > self.properties.slides_length && self.settings.continuous) {
+                self.elements.$wrapper.css({'transition': 'all 0s ease'});
+                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                    new_position = self._private.getItemPosition(self.elements.$slides.eq(index_range.max), self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align) * -1;
+                if (self.settings.orientation == 'vertical') {
+                    self._private.setCarouselPosition('slide',0,new_position);
+                }
+                else {
+                    self._private.setCarouselPosition('slide',new_position,0);
+                }
+                self.properties.current_index = index_range.max;
+                new_index = index_range.max-1;
+            }
+            else {
+                new_index = index_range.max;
+            }
+        }
 
         self.goTo(new_index, -1);
     };
