@@ -31,7 +31,7 @@
         }
 
         .cable-slider-container {
-            overflow:visible;
+            overflow:hidden;
             background:darkred;
         }
 
@@ -68,9 +68,9 @@
         .custom-cable-slider-thumbs {
             width:22%;
             position:absolute;
-            top:0;
+            top:100%;
             left:0;
-            height:100%;
+            /*height:100%;*/
         }
 
         .cable-slider-thumb img {
@@ -127,10 +127,10 @@
                 orientation:'horizontal',
                 align:'center',
                 shown:1,
-                //continuous:true,
+                continuous:true,
                 thumbs_container:'.custom-cable-slider-thumbs',
                 thumbs_shown:3,
-                thumbs_orientation:'vertical',
+                thumbs_orientation:'horizontal',
                 thumbs_align:'center',
                 thumbs_margin:'14%',
                 auto_thumbs:false,

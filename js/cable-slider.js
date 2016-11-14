@@ -435,7 +435,7 @@
                 target_clones_length = (shown - $items.length);
 
                 while (clones_length < target_clones_length) {
-                    $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                    $items.eq(i).clone(true,true).addClass('cable-slider-clone').appendTo($wrapper);
                     i++;
                     clones_length++;
                 }
@@ -454,7 +454,7 @@
             target_clones_length = min_clones;
             limit = (target_clones_length > $items.length) ? $items.length-1 : target_clones_length-1;
             while (clones_length < target_clones_length) {
-                $items.eq(i).clone().addClass('cable-slider-clone').appendTo($wrapper);
+                $items.eq(i).clone(true,true).addClass('cable-slider-clone').appendTo($wrapper);
                 if (i >= limit) i = 0;
                 else i++;
                 clones_length++;
@@ -466,7 +466,7 @@
             target_clones_length = min_clones;
             limit = (target_clones_length > $items.length) ? 0 : $items.length - target_clones_length;
             while (clones_length < target_clones_length) {
-                $items.eq(i).clone().addClass('cable-slider-clone').prependTo($wrapper);
+                $items.eq(i).clone(true,true).addClass('cable-slider-clone').prependTo($wrapper);
                 if (i <= limit) i = $items.length - 1;
                 else i--;
                 clones_length++;
@@ -476,6 +476,43 @@
             if (type == 'thumb') self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
             else self.elements.$slides = $wrapper.find('>.cable-slider-slide');
         }
+    };
+
+    _private.prototype.convertIndex = function(to_type,index) {
+        var self = this.self;
+
+        if (to_type == 'thumb') {
+            if (self.settings.continuous && !self.settings.thumbs_continuous) {
+                index = self.elements.$slides.eq(index).data('cs-index');
+            }
+            else if (!self.settings.continuous && self.settings.thumbs_continuous) {
+                self.elements.$thumbs.each(function(real_index){
+                    var cs_index = $(this).data('cs-index');
+                    if (cs_index == index) {
+                        index = real_index;
+                        return false;
+                    }
+                });
+            }
+        }
+        else {
+            if (self.settings.continuous && !self.settings.thumbs_continuous) {
+                var index_range = self._private.getIndexRange();
+
+                self.elements.$slides.each(function(real_index){
+                    var cs_index = $(this).data('cs-index');
+                    if (cs_index == index && real_index >= index_range.min && real_index <= index_range.max) {
+                        index = real_index;
+                        return false;
+                    }
+                });
+            }
+            else if (!self.settings.continuous && self.settings.thumbs_continuous) {
+                index = self.elements.$thumbs.eq(index).data('cs-index');
+            }
+        }
+
+        return index;
     };
 
     _private.prototype.getIndexRange = function () {
@@ -794,12 +831,10 @@
         }
 
         if (_static.elementExists(self.elements.$thumbs)) {
-            self.elements.$thumbs.each(function (index) {
-                var $thumb = $(this);
-                $thumb.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
-                    e.preventDefault();
-                    self.goTo(index);
-                });
+            self.elements.$thumbs.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
+                e.preventDefault();
+                var index = self._private.convertIndex('slide',$(this).data('cs-index'));
+                self.goTo(index);
             });
         }
     };
@@ -834,6 +869,10 @@
             self.elements.$slides = $slides;
             self.properties.slides_length = $slides.length;
 
+            $slides.each(function(i){
+                $(this).data('cs-index',i);
+            });
+
             // thumbs
             var $thumbs_root = $(self.settings.thumbs_container).eq(0),
                 $thumbs_container = null,
@@ -863,6 +902,12 @@
                         $thumbs_wrapper = $thumbs_container.find('>.cable-slider-thumbs-wrapper').eq(0);
                         $thumbs = $thumbs_wrapper.find('>.cable-slider-thumb');
                     }
+                }
+
+                if (_static.elementExists($thumbs)) {
+                    $thumbs.each(function(i){
+                        $(this).data('cs-index',i);
+                    });
                 }
             }
 
@@ -939,7 +984,7 @@
 
             // container height start
 
-            $items.each(function (index) {
+            $items.each(function () {
                 var $item = $(this),
                     item_height = $item[0].getBoundingClientRect().height; // should have border-box set for box-sizing
 
@@ -962,7 +1007,7 @@
                     }
 
                     if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
-                        self.elements.$thumbs.eq(index).addClass('focus');
+                        self.elements.$thumbs.eq($item.data('cs-index')).addClass('focus');
                     }
                 }
             });
@@ -984,7 +1029,7 @@
             margin = type == 'thumb' ? self.settings.thumbs_margin : self.settings.margin,
             orientation = type == 'thumb' ? self.settings.thumbs_orientation : self.settings.orientation;
 
-        if (_static.elementExists($items) && (type != 'thumb' || self.elements.$thumbs.length == self.elements.$slides.length)) {
+        if (_static.elementExists($items)) {
 
             // layout start
             self._private.applySettings();
@@ -998,6 +1043,11 @@
                 container_width: $container.get(0).getBoundingClientRect().width,
                 new_container_height: 0
             };
+
+            if (type == 'thumb') {
+                data.current_index = self._private.convertIndex('thumb',data.current_index);
+                data.new_index = self._private.convertIndex('thumb',data.new_index);
+            }
 
             margin = self._private.getRealMargin(margin, data.container_width);
 
@@ -1090,7 +1140,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.7';
+    CableSlider.prototype.version = '0.1.8';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
