@@ -415,66 +415,68 @@
             target_clones_length,
             limit;
 
-        // remove existing clones
-        $items.filter('.cable-slider-clone').remove();
+        if (_static.elementExists($items)) {
+            // remove existing clones
+            $items.filter('.cable-slider-clone').remove();
 
-        // reset
-        if (type == 'thumb') $items = self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
-        else $items = self.elements.$slides = $wrapper.find('>.cable-slider-slide');
+            // reset
+            if (type == 'thumb') $items = self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
+            else $items = self.elements.$slides = $wrapper.find('>.cable-slider-slide');
 
-        if (continuous && _static.elementExists($items)) {
+            if (continuous) {
 
-            if (shown+1 > min_clones) min_clones = shown+1;
+                if (shown+1 > min_clones) min_clones = shown+1;
 
-            //todo should clones copy events?
+                //todo should clones copy events?
 
-            // fill
-            if ($items.length < shown) {
+                // fill
+                if ($items.length < shown) {
+                    i = 0;
+                    clones_length = 0;
+                    target_clones_length = (shown - $items.length);
+
+                    while (clones_length < target_clones_length) {
+                        $items.eq(i).clone(true,true).addClass('cable-slider-clone').appendTo($wrapper);
+                        i++;
+                        clones_length++;
+                    }
+
+                    if (type != 'thumb') {
+                        self.properties.slides_length = shown;
+                    }
+
+                    if (type == 'thumb') $items = self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
+                    else $items = self.elements.$slides = $wrapper.find('>.cable-slider-slide');
+                }
+
+                // append
                 i = 0;
                 clones_length = 0;
-                target_clones_length = (shown - $items.length);
-
+                target_clones_length = min_clones;
+                limit = (target_clones_length > $items.length) ? $items.length-1 : target_clones_length-1;
                 while (clones_length < target_clones_length) {
                     $items.eq(i).clone(true,true).addClass('cable-slider-clone').appendTo($wrapper);
-                    i++;
+                    if (i >= limit) i = 0;
+                    else i++;
                     clones_length++;
                 }
 
-                if (type != 'thumb') {
-                    self.properties.slides_length = shown;
+                // prepend
+                i = $items.length - 1;
+                clones_length = 0;
+                target_clones_length = min_clones;
+                limit = (target_clones_length > $items.length) ? 0 : $items.length - target_clones_length;
+                while (clones_length < target_clones_length) {
+                    $items.eq(i).clone(true,true).addClass('cable-slider-clone').prependTo($wrapper);
+                    if (i <= limit) i = $items.length - 1;
+                    else i--;
+                    clones_length++;
                 }
 
-                if (type == 'thumb') $items = self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
-                else $items = self.elements.$slides = $wrapper.find('>.cable-slider-slide');
+                // reset
+                if (type == 'thumb') self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
+                else self.elements.$slides = $wrapper.find('>.cable-slider-slide');
             }
-
-            // append
-            i = 0;
-            clones_length = 0;
-            target_clones_length = min_clones;
-            limit = (target_clones_length > $items.length) ? $items.length-1 : target_clones_length-1;
-            while (clones_length < target_clones_length) {
-                $items.eq(i).clone(true,true).addClass('cable-slider-clone').appendTo($wrapper);
-                if (i >= limit) i = 0;
-                else i++;
-                clones_length++;
-            }
-
-            // prepend
-            i = $items.length - 1;
-            clones_length = 0;
-            target_clones_length = min_clones;
-            limit = (target_clones_length > $items.length) ? 0 : $items.length - target_clones_length;
-            while (clones_length < target_clones_length) {
-                $items.eq(i).clone(true,true).addClass('cable-slider-clone').prependTo($wrapper);
-                if (i <= limit) i = $items.length - 1;
-                else i--;
-                clones_length++;
-            }
-
-            // reset
-            if (type == 'thumb') self.elements.$thumbs = $wrapper.find('>.cable-slider-thumb');
-            else self.elements.$slides = $wrapper.find('>.cable-slider-slide');
         }
     };
 
@@ -1140,7 +1142,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.8';
+    CableSlider.prototype.version = '0.1.9';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
