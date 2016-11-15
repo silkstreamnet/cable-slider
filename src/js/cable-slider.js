@@ -489,8 +489,9 @@
             }
             else if (!self.settings.continuous && self.settings.thumbs_continuous) {
                 self.elements.$thumbs.each(function(real_index){
-                    var cs_index = $(this).data('cs-index');
-                    if (cs_index == index) {
+                    var $item = $(this),
+                        cs_index = $item.data('cs-index');
+                    if (cs_index == index && !$item.hasClass('cable-slider-clone')) {
                         index = real_index;
                         return false;
                     }
@@ -502,8 +503,9 @@
                 var index_range = self._private.getIndexRange();
 
                 self.elements.$slides.each(function(real_index){
-                    var cs_index = $(this).data('cs-index');
-                    if (cs_index == index && real_index >= index_range.min && real_index <= index_range.max) {
+                    var $item = $(this),
+                        cs_index = $item.data('cs-index');
+                    if (cs_index == index && !$item.hasClass('cable-slider-clone')) {
                         index = real_index;
                         return false;
                     }
@@ -1142,7 +1144,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.10';
+    CableSlider.prototype.version = '0.1.11';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
