@@ -599,17 +599,18 @@
                 var movement_x = Math.abs(move_x - start_x) - capture_space,
                     movement_y = Math.abs(move_y - start_y) - capture_space;
 
-                if (type == 'touch') {
+                if (type != 'touch') captured = true;
+
+                if (!captured) {
                     if ((movement_x > 0 || movement_y > 0) && ((movement_y >= movement_x && self.settings.orientation == 'vertical') || movement_x >= movement_y)) {
                         captured = true;
                     }
-                    else if ((movement_x > 0 || movement_y > 0) && ((movement_y < movement_x && self.settings.orientation == 'vertical') || movement_x < movement_y)) {
-                        end(type);
+                    else {
+                        if ((movement_x > 0 || movement_y > 0) && ((movement_y < movement_x && self.settings.orientation == 'vertical') || movement_x < movement_y)) {
+                            end(event,type);
+                        }
                         return;
                     }
-                }
-                else {
-                    captured = true;
                 }
 
                 if (event) {
@@ -698,49 +699,52 @@
                 _static.$document.off('mouseup.' + _static._event_namespace);
                 disable_mouse = false;
 
-                var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
-                    index_range = self._private.getIndexRange(),
-                    $check_item,
-                    item_position,
-                    j = -1,
-                    d = 0,
-                    j_difference = -1,
-                    n_position,
-                    n_difference;
-                for (var i = 0; i < self.elements.$slides.length; i++) {
-                    $check_item = self.elements.$slides.eq(i);
-                    item_position = self._private.getItemPosition($check_item, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
+                if (captured) {
+                    var container_size = self._private.getContainerSize(self.elements.$container, self.settings.orientation),
+                        index_range = self._private.getIndexRange(),
+                        $check_item,
+                        item_position,
+                        j = -1,
+                        d = 0,
+                        j_difference = -1,
+                        n_position,
+                        n_difference;
 
-                    n_position = new_position * -1;
+                    for (var i = 0; i < self.elements.$slides.length; i++) {
+                        $check_item = self.elements.$slides.eq(i);
+                        item_position = self._private.getItemPosition($check_item, self.elements.$wrapper, container_size, self.settings.orientation, self.settings.align);
 
-                    n_difference = Math.abs(item_position - n_position);
-                    if (j_difference < 0 || n_difference < j_difference) {
-                        j_difference = n_difference;
-                        j = i;
-                    }
-                }
+                        n_position = new_position * -1;
 
-                if (j >= 0) {
-                    if (j == self.properties.current_index) {
-                        if (j_difference > capture_space) {
-                            if (old_position > new_position) {
-                                j++;
-                                d = 1;
-                            }
-                            else if (old_position < new_position) {
-                                j--;
-                                d = -1;
-                            }
-                        }
-                        else {
-                            captured = false;
+                        n_difference = Math.abs(item_position - n_position);
+                        if (j_difference < 0 || n_difference < j_difference) {
+                            j_difference = n_difference;
+                            j = i;
                         }
                     }
 
-                    if (j < index_range.min) j = index_range.min;
-                    else if (j > index_range.max) j = index_range.max;
+                    if (j >= 0) {
+                        if (j == self.properties.current_index) {
+                            if (j_difference > capture_space) {
+                                if (old_position > new_position) {
+                                    j++;
+                                    d = 1;
+                                }
+                                else if (old_position < new_position) {
+                                    j--;
+                                    d = -1;
+                                }
+                            }
+                            else {
+                                captured = false;
+                            }
+                        }
 
-                    self.goTo(j, d);
+                        if (j < index_range.min) j = index_range.min;
+                        else if (j > index_range.max) j = index_range.max;
+
+                        self.goTo(j, d);
+                    }
                 }
             };
 
@@ -1144,7 +1148,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.11';
+    CableSlider.prototype.version = '0.1.12';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
