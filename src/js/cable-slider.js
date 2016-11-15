@@ -842,9 +842,8 @@
             self.elements.$thumbs.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 e.preventDefault();
                 var $item = $(this),
-                    new_slide_index = self._private.convertIndex('slide',$item.data('cs-index')),
-                    current_slide_index = self.elements.$slides.eq(self.properties.current_index).data('cs-index');
-                self.shift(new_slide_index-current_slide_index);
+                    new_slide_index = self._private.convertIndex('slide',$item.data('cs-index'));
+                self.shift(new_slide_index-self.properties.current_index);
             });
         }
     };
