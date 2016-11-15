@@ -183,14 +183,14 @@
         }
     };
 
-    _private.prototype.getValidSlideNumber = function (slide) {
+    _private.prototype.getValidIndex = function (slide) {
         var self = this.self;
-        var total_slides = self.elements.$slides.length;
-        if (slide < 0) {
-            slide = slide % -total_slides;
+        var index_range = self._private.getIndexRange();
+        if (slide < index_range.min) {
+            slide = index_range.min;
         }
-        else if (slide > total_slides - 1) {
-            slide = slide % total_slides;
+        else if (slide > index_range.max) {
+            slide = index_range.max;
         }
         return slide;
     };
@@ -841,8 +841,11 @@
         if (_static.elementExists(self.elements.$thumbs)) {
             self.elements.$thumbs.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 e.preventDefault();
-                var index = self._private.convertIndex('slide',$(this).data('cs-index'));
-                self.goTo(index);
+                var $item = $(this),
+                    new_thumb_index = $item.data('cs-index'),
+                    current_slide_index = self.elements.$slides.eq(self.properties.current_index).data('cs-index');
+
+                self.shift(self._private.convertIndex('slide',new_thumb_index)-current_slide_index);
             });
         }
     };
@@ -951,10 +954,6 @@
             });
 
             if ($slide && new_index >= 0) {
-                var index_range = self._private.getIndexRange();
-                if (new_index < index_range.min) new_index = index_range.min;
-                else if (new_index > index_range.max) new_index = index_range.max;
-
                 self.properties.new_index = new_index;
 
                 if (direction == 1 || direction == -1) {
@@ -1317,7 +1316,7 @@
         var self = this;
         self._private.resetAutoPlay();
         if (_static.isNumber(slide)) {
-            slide = self._private.getValidSlideNumber(slide);
+            slide = self._private.getValidIndex(slide);
             self._private.changeSlide(self.elements.$slides.get(slide), direction);
         }
         else {
@@ -1335,7 +1334,7 @@
     CableSlider.prototype.next = function () {
         var self = this;
         var new_index = self.properties.current_index + 1;
-        new_index = self._private.getValidSlideNumber(new_index);
+        new_index = self._private.getValidIndex(new_index);
 
         var index_range = self._private.getIndexRange();
         if (new_index > index_range.max) {
@@ -1363,7 +1362,7 @@
     CableSlider.prototype.prev = function () {
         var self = this;
         var new_index = self.properties.current_index - 1;
-        new_index = self._private.getValidSlideNumber(new_index);
+        new_index = self._private.getValidIndex(new_index);
 
         var index_range = self._private.getIndexRange();
         if (new_index < index_range.min) {
