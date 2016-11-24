@@ -590,6 +590,8 @@
                 self.elements.$wrapper.css('transition', 'all 0s ease');
                 self._private.setCarouselPosition('slide', wrapper_x, wrapper_y);
 
+                self.pause();
+
                 move(new_start_x, new_start_y, false, type);
             },
             move = function (new_move_x, new_move_y, event, type) {
@@ -745,6 +747,10 @@
 
                         self.goTo(j, d);
                     }
+                }
+
+                if (self.settings.auto_play) {
+                    self.play();
                 }
             };
 
@@ -1145,7 +1151,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.13';
+    CableSlider.prototype.version = '0.1.14';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,

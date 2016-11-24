@@ -590,6 +590,8 @@
                 self.elements.$wrapper.css('transition', 'all 0s ease');
                 self._private.setCarouselPosition('slide', wrapper_x, wrapper_y);
 
+                self.pause();
+
                 move(new_start_x, new_start_y, false, type);
             },
             move = function (new_move_x, new_move_y, event, type) {
@@ -746,6 +748,10 @@
                         self.goTo(j, d);
                     }
                 }
+
+                if (self.settings.auto_play) {
+                    self.play();
+                }
             };
 
         if (_static.elementExists(self.elements.$container)) {
@@ -842,10 +848,8 @@
             self.elements.$thumbs.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 e.preventDefault();
                 var $item = $(this),
-                    new_thumb_index = $item.data('cs-index'),
-                    current_slide_index = self.elements.$slides.eq(self.properties.current_index).data('cs-index');
-
-                self.shift(self._private.convertIndex('slide',new_thumb_index)-current_slide_index);
+                    new_slide_index = self._private.convertIndex('slide',$item.data('cs-index'));
+                self.shift(new_slide_index-self.properties.current_index);
             });
         }
     };
@@ -1147,7 +1151,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.12';
+    CableSlider.prototype.version = '0.1.14';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -1334,7 +1338,6 @@
     CableSlider.prototype.next = function () {
         var self = this;
         var new_index = self.properties.current_index + 1;
-        new_index = self._private.getValidIndex(new_index);
 
         var index_range = self._private.getIndexRange();
         if (new_index > index_range.max) {
@@ -1362,7 +1365,6 @@
     CableSlider.prototype.prev = function () {
         var self = this;
         var new_index = self.properties.current_index - 1;
-        new_index = self._private.getValidIndex(new_index);
 
         var index_range = self._private.getIndexRange();
         if (new_index < index_range.min) {
