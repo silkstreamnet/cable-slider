@@ -616,6 +616,7 @@
                 }
 
                 if (event) {
+                    event.stopImmediatePropagation();
                     event.preventDefault();
                 }
 
@@ -752,6 +753,21 @@
                 if (self.settings.auto_play) {
                     self.play();
                 }
+
+                if (captured) {
+                    var $target = $(event.target);
+                    if ($target.closest(self.elements.$container).length) {
+                        $(event.target).one('click',function(e){
+                            //TODO need to test if this works on final level elements with click listeners.
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            return false;
+                        });
+                    }
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+                return !captured;
             };
 
         if (_static.elementExists(self.elements.$container)) {
@@ -1151,7 +1167,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.14';
+    CableSlider.prototype.version = '0.1.15';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,

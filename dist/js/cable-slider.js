@@ -616,6 +616,7 @@
                 }
 
                 if (event) {
+                    event.stopImmediatePropagation();
                     event.preventDefault();
                 }
 
@@ -752,6 +753,12 @@
                 if (self.settings.auto_play) {
                     self.play();
                 }
+
+                if (captured) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+                return !captured;
             };
 
         if (_static.elementExists(self.elements.$container)) {
@@ -780,6 +787,7 @@
 
             self.elements.$container.off('click.' + _static._event_namespace).on('click.' + _static._event_namespace, function (e) {
                 if (captured) {
+                    console.log(e.target);
                     e.stopImmediatePropagation();
                     e.preventDefault();
                     return false;
