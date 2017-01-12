@@ -1015,16 +1015,28 @@
                 var $item = $(this),
                     item_height = $item[0].getBoundingClientRect().height; // should have border-box set for box-sizing
 
-                if ($item.hasClass('active')) {
+                if (self.settings.active_height) {
+                    if ($item.hasClass('active')) {
+                        if (orientation == 'vertical') {
+                            if (!$item.hasClass('last-active') && !$item.hasClass('part-active')) {
+                                item_height += $item.outerHeight(true) - $item.outerHeight(false);
+                            }
+
+                            if ($item.hasClass('part-active')) {
+                                item_height /= 2;
+                            }
+
+                            data.new_container_height += item_height;
+                        }
+                        else {
+                            if (item_height > data.new_container_height) {
+                                data.new_container_height = item_height;
+                            }
+                        }
+                    }
+                }
+                else {
                     if (orientation == 'vertical') {
-                        if (!$item.hasClass('last-active') && !$item.hasClass('part-active')) {
-                            item_height += $item.outerHeight(true) - $item.outerHeight(false);
-                        }
-
-                        if ($item.hasClass('part-active')) {
-                            item_height /= 2;
-                        }
-
                         data.new_container_height += item_height;
                     }
                     else {
@@ -1032,11 +1044,14 @@
                             data.new_container_height = item_height;
                         }
                     }
+                }
 
+                if ($item.hasClass('active')) {
                     if (type == 'slide' && _static.elementExists(self.elements.$thumbs)) {
                         self.elements.$thumbs.eq($item.data('cs-index')).addClass('focus');
                     }
                 }
+
             });
         }
 
@@ -1068,6 +1083,7 @@
                 current_index: self.properties.current_index,
                 new_index: self.properties.new_index,
                 container_width: $container.get(0).getBoundingClientRect().width,
+                container_height: $container.get(0).getBoundingClientRect().height,
                 new_container_height: 0
             };
 
@@ -1167,7 +1183,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.15';
+    CableSlider.prototype.version = '0.1.16';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -1195,6 +1211,7 @@
         auto_play: false, // set a number for a time period. false or 0 will not auto play.
         hover_pause: false,
         auto_create: true,
+        active_height: true,
         responsive: {}
     };
 
