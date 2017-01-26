@@ -1183,7 +1183,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.16';
+    CableSlider.prototype.version = '0.1.17';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
@@ -1229,7 +1229,8 @@
         self._private.prepareAdjust('thumb');
         self.adjust(false, true);
 
-        self.goTo((self.settings.continuous ? Math.floor((self.elements.$slides.length-self.properties.slides_length)/2) : 0), 0);
+        if (_static.elementExists(self.elements.$slides))
+            self.goTo((self.settings.continuous ? Math.floor((self.elements.$slides.length-self.properties.slides_length)/2) : 0), 0);
 
         self.adjust(false,true);
 
