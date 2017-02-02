@@ -616,7 +616,6 @@
                 }
 
                 if (event) {
-                    event.stopImmediatePropagation();
                     event.preventDefault();
                 }
 
@@ -771,11 +770,15 @@
             };
 
         if (_static.elementExists(self.elements.$container)) {
+            self.elements.$container.on('dragstart',function(e){
+                e.preventDefault();
+            });
+
             self.elements.$container.off('touchstart.' + _static._event_namespace).on('touchstart.' + _static._event_namespace, function (e) {
                 disable_mouse = true;
                 start(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY, e, 'touch');
                 _static.$document.off('touchmove.' + _static._event_namespace).on('touchmove.' + _static._event_namespace, function (e) {
-                    return move(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY, e, 'touch');
+                    move(e.originalEvent.touches[0].pageX, e.originalEvent.touches[0].pageY, e, 'touch');
                 });
                 _static.$document.off('touchend.' + _static._event_namespace).on('touchend.' + _static._event_namespace, function (e) {
                     return end(e, 'touch');
@@ -783,10 +786,11 @@
             });
 
             self.elements.$container.off('mousedown.' + _static._event_namespace).on('mousedown.' + _static._event_namespace, function (e) {
+                console.log("mousedown");
                 if (!disable_mouse && e.which == 1) {
                     start(e.pageX, e.pageY, e, 'mouse');
                     _static.$document.off('mousemove.' + _static._event_namespace).on('mousemove.' + _static._event_namespace, function (e) {
-                        return move(e.pageX, e.pageY, e, 'mouse');
+                        move(e.pageX, e.pageY, e, 'mouse');
                     });
                     _static.$document.off('mouseup.' + _static._event_namespace).on('mouseup.' + _static._event_namespace, function (e) {
                         return end(e, 'mouse');
@@ -1183,7 +1187,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.17';
+    CableSlider.prototype.version = '0.1.18';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
