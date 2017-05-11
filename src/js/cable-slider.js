@@ -786,7 +786,6 @@
             });
 
             self.elements.$container.off('mousedown.' + _static._event_namespace).on('mousedown.' + _static._event_namespace, function (e) {
-                console.log("mousedown");
                 if (!disable_mouse && e.which == 1) {
                     start(e.pageX, e.pageY, e, 'mouse');
                     _static.$document.off('mousemove.' + _static._event_namespace).on('mousemove.' + _static._event_namespace, function (e) {
