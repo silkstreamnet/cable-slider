@@ -770,7 +770,7 @@
             };
 
         if (_static.elementExists(self.elements.$container)) {
-            self.elements.$container.on('dragstart',function(e){
+            self.elements.$container.off('dragstart.' + _static._event_namespace).on('dragstart.' + _static._event_namespace,function(e){
                 e.preventDefault();
             });
 
@@ -1187,7 +1187,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.18';
+    CableSlider.prototype.version = '0.1.19';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,
