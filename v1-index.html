@@ -148,6 +148,18 @@
                     }
                 }
             });
+
+            var $bullet = $('.featured-banner-indicator-bullet');
+            if ($bullet.length || 1) {
+                custom_cable_slider.on('after_adjust.update-bullet',function(){
+                    var perky_width = (100/custom_cable_slider.properties.slides_length);
+                    var index = custom_cable_slider.elements.$slides.eq(custom_cable_slider.properties.current_index).data('cs-index');
+                    $bullet.css({
+                        'width':perky_width+'%',
+                        'left':(perky_width*(index))+'%'
+                    });
+                });
+            }
         },200);
     });
 </script>

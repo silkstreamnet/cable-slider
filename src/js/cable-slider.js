@@ -770,6 +770,8 @@
             };
 
         if (_static.elementExists(self.elements.$container)) {
+            self.elements.$container.css('touch-action','manipulation');
+
             self.elements.$container.off('dragstart.' + _static._event_namespace).on('dragstart.' + _static._event_namespace,function(e){
                 e.preventDefault();
             });
@@ -1186,7 +1188,7 @@
         if (self.settings.auto_create) self.create();
     };
 
-    CableSlider.prototype.version = '0.1.19';
+    CableSlider.prototype.version = '0.1.20';
     CableSlider.prototype.default_settings = {
         container: false,
         next: false,

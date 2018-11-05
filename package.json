@@ -4,10 +4,8 @@
   "author": "Tristan",
   "devDependencies": {
     "grunt": "^1.0.0",
-    "grunt-contrib-compass": "^1.0.0",
     "grunt-contrib-concat": "^1.0.0",
-    "grunt-contrib-uglify": "^2.0.0",
-    "grunt-contrib-watch": "^1.0.0"
+    "grunt-contrib-uglify": "^3.0.0"
   },
   "description": ""
 }
