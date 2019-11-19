@@ -1229,7 +1229,7 @@
 
         self._private.build();
 
-        if (_static.elementExists(self.elements.$slides)) return;
+        if (!_static.elementExists(self.elements.$slides)) return;
 
         self._private.load();
 
