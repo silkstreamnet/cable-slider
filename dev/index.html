@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <title></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <link href="dist/css/cable-slider.css" type="text/css" rel="stylesheet" />
-    <style type="text/css">
+    <style>
         *, *:before, *:after {
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
@@ -95,73 +94,23 @@
 <div class="custom-cable-slider">
     <div class="custom-cable-slider-container">
         <div class="custom-cable-slider-thumbs">
-            <div class="custom-cable-slider-thumb hide"><img src="images/1_1.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="images/1_2.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="images/1_3.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="images/1_4.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="images/1_2.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_1.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_2.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_3.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_4.jpg"></div>
+            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_2.jpg"></div>
         </div>
         <div class="custom-cable-slider-slides">
-            <div class="custom-cable-slider-slide"><a href="#"><img src="images/1_1.jpg"></a></div>
-            <div class="custom-cable-slider-slide hide"><img src="images/1_2.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="images/1_3.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="images/1_4.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="images/1_2.jpg"></div>
+            <div class="custom-cable-slider-slide"><a href="#"><img src="assets/img/1_1.jpg"></a></div>
+            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_2.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_3.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_4.jpg"></div>
+            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_2.jpg"></div>
         </div>
     </div>
     <a class="custom-cable-slider-prev" href="#">&lt;</a><a class="custom-cable-slider-next" href="#">&gt;</a>
 </div>
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-<script type="text/javascript" src="dist/js/lib/jquery-2.2.4.min.js"></script>
-<script type="text/javascript" src="src/js/cable-slider.js"></script>
-<script type="text/javascript">
-    $(window).on('load',function(){
-        setTimeout(function(){
-            $('.custom-cable-slider-slide.hide,.custom-cable-slider-thumb.hide').removeClass('hide');
-//console.log("start");
-            var custom_cable_slider = new $.CableSlider({
-                container:'.custom-cable-slider-slides',
-                next:'.custom-cable-slider-next',
-                prev:'.custom-cable-slider-prev',
-                margin:10,
-                orientation:'horizontal',
-                align:'center',
-                shown:1,
-                continuous:true,
-                thumbs_container:'.custom-cable-slider-thumbs',
-                thumbs_shown:3,
-                thumbs_orientation:'horizontal',
-                thumbs_align:'left',
-                thumbs_margin:false,
-                auto_thumbs:false,
-                //auto_play:2000,
-                hover_pause:true,
-                //min_clones:10,
-                responsive:{ // need a function to get responsive overrides for settings
-                    1000:{ // if > 768 then apply these settings
-                        shown:1,
-                        thumbs_shown:30
-                    },
-                    800:{
-                        shown:1,
-                        thumbs_shown:4
-                    }
-                }
-            });
 
-            var $bullet = $('.featured-banner-indicator-bullet');
-            if ($bullet.length || 1) {
-                custom_cable_slider.on('after_adjust.update-bullet',function(){
-                    var perky_width = (100/custom_cable_slider.properties.slides_length);
-                    var index = custom_cable_slider.elements.$slides.eq(custom_cable_slider.properties.current_index).data('cs-index');
-                    $bullet.css({
-                        'width':perky_width+'%',
-                        'left':(perky_width*(index))+'%'
-                    });
-                });
-            }
-        },200);
-    });
-</script>
 </body>
 </html>
