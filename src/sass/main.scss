@@ -1,22 +1,20 @@
-/*
- * 	Cable Slider CSS File
- *	Version 0.1.10
- */
-
-.cable-slider-container, .cable-slider-thumbs-container, .cable-slider-wrapper, .cable-slider-thumbs-wrapper, .cable-slider-slide, .cable-slider-thumb {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
+.cable-slider-container,
+.cable-slider-thumbs-container,
+.cable-slider-wrapper,
+.cable-slider-thumbs-wrapper,
+.cable-slider-slide,
+.cable-slider-thumb {
     box-sizing: border-box;
 
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
 }
 
-.cable-slider-container, .cable-slider-thumbs-container {
+.cable-slider-container,
+.cable-slider-thumbs-container {
     position:relative;
     display:block;
     visibility:visible;
@@ -25,7 +23,8 @@
     overflow:hidden; /* Set this to visible to show slides outside of container or hidden to hide them. */
 }
 
-.cable-slider-wrapper, .cable-slider-thumbs-wrapper {
+.cable-slider-wrapper,
+.cable-slider-thumbs-wrapper {
     position:relative;
     display:block;
     visibility:visible;
@@ -34,7 +33,8 @@
     overflow:hidden;
 }
 
-.cable-slider-slide, .cable-slider-thumb {
+.cable-slider-slide,
+.cable-slider-thumb {
     position:relative;
     left:0;
     top:0;
@@ -44,14 +44,4 @@
 
 .cable-slider-thumb {
     cursor:pointer;
-}
-
-/*
- * Optional Default Additions
- */
-
-.cable-slider-slide img, .cable-slider-thumb img {
-    display:block;
-    max-width:100%;
-    height:auto;
 }

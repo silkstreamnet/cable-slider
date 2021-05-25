@@ -73,7 +73,9 @@
                     var data = $object.data(data_property);
                     if (typeof data !== 'undefined') {
                         var data_float = parseFloat(data);
-                        if (data == 'true') data = !0; else if (data == 'false') data = !1; else if (data_float == data) data = data_float;
+                        if (data === 'true') data = !0;
+                        else if (data === 'false') data = !1;
+                        else if (data_float === data) data = data_float;
                         settings[property] = data;
                     }
                 }
@@ -87,11 +89,11 @@
 
     _static.getJustWidth = function ($element) {
         var element = (_static.isSet($element.length)) ? $element.get(0) : $element, cs = getComputedStyle(element), size = element.getBoundingClientRect().width;
-        return (cs.boxSizing == 'border-box') ? size - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) : size;
+        return (cs.boxSizing === 'border-box') ? size - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) : size;
     };
     _static.getJustHeight = function ($element) {
         var element = (_static.isSet($element.length)) ? $element.get(0) : $element, cs = getComputedStyle(element), size = element.getBoundingClientRect().height;
-        return (cs.boxSizing == 'border-box') ? size - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth) : size;
+        return (cs.boxSizing === 'border-box') ? size - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth) : size;
     };
 
     _static.has3dSupport = (function () {
@@ -128,9 +130,9 @@
             transform = style.transform || style.webkitTransform || style.mozTransform;
         if (transform) {
             var matrix3d = transform.match(/^matrix3d\((.+)\)$/);
-            if (matrix3d) return parseFloat(matrix3d[1].split(', ')[axis == 'x' ? 12 : 13]);
+            if (matrix3d) return parseFloat(matrix3d[1].split(', ')[axis === 'x' ? 12 : 13]);
             var matrix = transform.match(/^matrix\((.+)\)$/);
-            return matrix ? parseFloat(matrix[1].split(', ')[axis == 'x' ? 4 : 5]) : 0;
+            return matrix ? parseFloat(matrix[1].split(', ')[axis === 'x' ? 4 : 5]) : 0;
         }
         return 0;
     };

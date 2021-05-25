@@ -1,11 +1,9 @@
 {
   "name": "cable-slider",
   "version": "1.0.0",
-  "author": "Tristan",
+  "author": "Tristan Sach",
   "devDependencies": {
-    "grunt": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.0",
-    "grunt-contrib-uglify": "^4.0.1"
+
   },
   "description": ""
 }
