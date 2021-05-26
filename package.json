@@ -12,6 +12,7 @@
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^5.2.0",
     "html-webpack-plugin": "^5.3.1",
+    "mini-css-extract-plugin": "^1.6.0",
     "sass": "^1.32.8",
     "sass-loader": "^11.0.1",
     "style-loader": "^2.0.0",
@@ -28,6 +29,6 @@
   "scripts": {
     "dev": "webpack --config webpack.dev.js",
     "serve": "webpack --config webpack.dev.js && webpack serve --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js && webpack --config webpack.prod.js --env minimize=1"
+    "build": "webpack --config webpack.prod.js --env production && webpack --config webpack.prod.js --env production --env minimize"
   }
 }

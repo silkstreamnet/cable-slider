@@ -35,6 +35,8 @@
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other entry modules.
+(() => {
 
 // UNUSED EXPORTS: default
 
@@ -1555,7 +1557,7 @@ core_core.prototype.trigger = function (event, handler, params) {
     }
   }
 };
-;// CONCATENATED MODULE: ./src/index.js
+;// CONCATENATED MODULE: ./src/cable-slider.js
 
 
  // global events
@@ -1573,6 +1575,14 @@ _static.$window.off('resize.' + _static._event_namespace).on('resize.' + _static
 });
 
 (external_jQuery_default()).CableSlider = core_core;
-/* harmony default export */ const src = ((/* unused pure expression or super */ null && (_core)));
+/* harmony default export */ const cable_slider = ((/* unused pure expression or super */ null && (_core)));
+})();
+
+// This entry need to be wrapped in an IIFE because it need to be isolated against other entry modules.
+(() => {
+// extracted by mini-css-extract-plugin
+
+})();
+
 /******/ })()
 ;

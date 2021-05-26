@@ -1,18 +1,19 @@
 import $ from "jquery"
-import CableSlider from "../src"
+import "./assets/sass/test.scss"
+import CableSlider from "../src/cable-slider"
 
-$('.custom-cable-slider-slide.hide,.custom-cable-slider-thumb.hide').removeClass('hide');
+$('.image-gallery-slide.hide,.image-gallery-thumb.hide').removeClass('hide');
 
-const custom_cable_slider = new CableSlider({
-    container:'.custom-cable-slider-slides',
-    next:'.custom-cable-slider-next',
-    prev:'.custom-cable-slider-prev',
+const image_gallery_slider = new CableSlider({
+    container:'.image-gallery-slides',
+    next:'.image-gallery-next',
+    prev:'.image-gallery-prev',
     margin:10,
     orientation:'horizontal',
     align:'center',
     shown:1,
     continuous:true,
-    thumbs_container:'.custom-cable-slider-thumbs',
+    thumbs_container:'.image-gallery-thumbs',
     thumbs_shown:3,
     thumbs_orientation:'horizontal',
     thumbs_align:'left',
@@ -37,9 +38,9 @@ $(window).on('load',function(){
     setTimeout(function(){
         var $bullet = $('.featured-banner-indicator-bullet');
         if ($bullet.length || 1) {
-            custom_cable_slider.on('after_adjust.update-bullet',function(){
-                var perky_width = (100/custom_cable_slider.properties.slides_length);
-                var index = custom_cable_slider.elements.$slides.eq(custom_cable_slider.properties.current_index).data('cs-index');
+            image_gallery_slider.on('after_adjust.update-bullet',function(){
+                var perky_width = (100/image_gallery_slider.properties.slides_length);
+                var index = image_gallery_slider.elements.$slides.eq(image_gallery_slider.properties.current_index).data('cs-index');
                 $bullet.css({
                     'width':perky_width+'%',
                     'left':(perky_width*(index))+'%'
@@ -50,5 +51,5 @@ $(window).on('load',function(){
 });
 
 export default {
-    custom_cable_slider
+    image_gallery_slider
 }

@@ -4,111 +4,27 @@
     <meta charset="utf-8">
     <title></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <style>
-        *, *:before, *:after {
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-        }
-
-        html {overflow-x:hidden; height:100%;}
-        body {font-family:Arial, Helvetica, sans-serif; font-size:24px; margin:10px 0; padding:0; background: #383d44;}
-        a {}
-        p {font-size:100%; margin:0 0 10px 0;}
-        img {max-width:100%; height:auto;}
-
-        .hide {display:none;}
-
-        .custom-cable-slider {
-            position:relative;
-            max-width:1800px;
-            margin:0 auto;
-        }
-
-        .custom-cable-slider-container {
-            position:relative;
-        }
-
-        .cable-slider-container {
-            overflow:hidden;
-            background:darkred;
-        }
-
-        .custom-cable-slider-slides {
-            margin-bottom:10px;
-            width:72%;
-            margin-left:27.5%;
-        }
-
-        .custom-cable-slider-slides img {
-            padding:20px;
-            border:1px solid #000;
-        }
-
-        .cable-slider-slide.active img {
-            border-color:#ccc;
-        }
-
-        .custom-cable-slider-prev, .custom-cable-slider-next {
-            display:inline-block;
-            width:50%;
-            text-align:center;
-            padding:10px;
-            background:#ccc;
-            font-size:150%;
-            text-decoration:none;
-            color:#000;
-        }
-
-        .custom-cable-slider-prev:hover, .custom-cable-slider-next:hover {
-            background:#aaa;
-        }
-
-        .custom-cable-slider-thumbs {
-            width:22%;
-            position:absolute;
-            top:100%;
-            left:0;
-            /*height:100%;*/
-        }
-
-        .cable-slider-thumb img {
-            max-height:100%;
-            width:auto;
-            border:1px solid transparent;
-        }
-
-        .cable-slider-thumb.active img {
-            border-color:#ccc;
-        }
-
-        .cable-slider-thumb.focus img {
-            border-color:red;
-        }
-
-
-    </style>
 </head>
 <body>
 
-<div class="custom-cable-slider">
-    <div class="custom-cable-slider-container">
-        <div class="custom-cable-slider-thumbs">
-            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_1.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_2.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_3.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_4.jpg"></div>
-            <div class="custom-cable-slider-thumb hide"><img src="assets/img/1_2.jpg"></div>
+<div class="image-gallery">
+    <div class="image-gallery-container">
+        <div class="image-gallery-thumbs">
+            <div class="image-gallery-thumb hide"><img src="assets/img/1_1.jpg"></div>
+            <div class="image-gallery-thumb hide"><img src="assets/img/1_2.jpg"></div>
+            <div class="image-gallery-thumb hide"><img src="assets/img/1_3.jpg"></div>
+            <div class="image-gallery-thumb hide"><img src="assets/img/1_4.jpg"></div>
+            <div class="image-gallery-thumb hide"><img src="assets/img/1_2.jpg"></div>
         </div>
-        <div class="custom-cable-slider-slides">
-            <div class="custom-cable-slider-slide"><a href="#"><img src="assets/img/1_1.jpg"></a></div>
-            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_2.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_3.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_4.jpg"></div>
-            <div class="custom-cable-slider-slide hide"><img src="assets/img/1_2.jpg"></div>
+        <div class="image-gallery-slides">
+            <div class="image-gallery-slide"><a href="#"><img src="assets/img/1_1.jpg"></a></div>
+            <div class="image-gallery-slide hide"><img src="assets/img/1_2.jpg"></div>
+            <div class="image-gallery-slide hide"><img src="assets/img/1_3.jpg"></div>
+            <div class="image-gallery-slide hide"><img src="assets/img/1_4.jpg"></div>
+            <div class="image-gallery-slide hide"><img src="assets/img/1_2.jpg"></div>
         </div>
     </div>
-    <a class="custom-cable-slider-prev" href="#">&lt;</a><a class="custom-cable-slider-next" href="#">&gt;</a>
+    <a class="image-gallery-prev" href="#">&lt;</a><a class="image-gallery-next" href="#">&gt;</a>
 </div>
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
