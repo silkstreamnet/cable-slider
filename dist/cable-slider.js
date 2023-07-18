@@ -1150,6 +1150,7 @@ _private.prototype.prepareAdjust = function (type, animate) {
     }
 
     $items.css(slide_css).each(function () {
+      // + 1 for rounding errors, outerWidth and outerHeight do not support decimal notation for true size
       new_wrapper_width += external_jQuery_default()(this).outerWidth(true) + 1;
       new_wrapper_height += external_jQuery_default()(this).outerHeight(true) + 1;
     });
@@ -1247,7 +1248,7 @@ var core_core = function _core(settings) {
   _static._instances.length++;
   if (self.settings.auto_create) self.create();
 };
-core_core.prototype.version = "0.1.21";
+core_core.prototype.version = "0.1.22";
 core_core.prototype.default_settings = _default_settings;
 
 core_core.prototype.create = function () {
