@@ -28,7 +28,7 @@
   },
   "scripts": {
     "dev": "webpack --config webpack.dev.js",
-    "serve": "webpack --config webpack.dev.js && webpack serve --config webpack.dev.js",
+    "serve": "webpack --config webpack.dev.js && webpack serve --config webpack.dev.js --port 8008",
     "build": "webpack --config webpack.prod.js --env production && webpack --config webpack.prod.js --env production --env minimize"
   }
 }
