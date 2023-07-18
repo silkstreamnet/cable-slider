@@ -1000,19 +1000,20 @@ _private.prototype.prepareAdjust = function (type, animate) {
         $items
             .css(slide_css)
             .each(function () {
-                new_wrapper_width += $(this).outerWidth(true);
-                new_wrapper_height += $(this).outerHeight(true);
+                // + 1 for rounding errors, outerWidth and outerHeight do not support decimal notation for true size
+                new_wrapper_width += $(this).outerWidth(true) + 1;
+                new_wrapper_height += $(this).outerHeight(true) + 1;
             });
 
         if (orientation == 'vertical') {
             $wrapper.css({
                 'width': '',
-                'height': (new_wrapper_height + 10) + 'px'
+                'height': (new_wrapper_height) + 'px'
             });
         }
         else {
             $wrapper.css({
-                'width': (new_wrapper_width + 10) + 'px',
+                'width': (new_wrapper_width) + 'px',
                 'height': ''
             });
         }

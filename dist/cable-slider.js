@@ -1150,18 +1150,18 @@ _private.prototype.prepareAdjust = function (type, animate) {
     }
 
     $items.css(slide_css).each(function () {
-      new_wrapper_width += external_jQuery_default()(this).outerWidth(true);
-      new_wrapper_height += external_jQuery_default()(this).outerHeight(true);
+      new_wrapper_width += external_jQuery_default()(this).outerWidth(true) + 1;
+      new_wrapper_height += external_jQuery_default()(this).outerHeight(true) + 1;
     });
 
     if (orientation == 'vertical') {
       $wrapper.css({
         'width': '',
-        'height': new_wrapper_height + 10 + 'px'
+        'height': new_wrapper_height + 'px'
       });
     } else {
       $wrapper.css({
-        'width': new_wrapper_width + 10 + 'px',
+        'width': new_wrapper_width + 'px',
         'height': ''
       });
     } // layout end
